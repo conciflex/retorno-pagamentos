@@ -65,7 +65,7 @@
                         <id>default-cli</id>
                         <configuration>
                             <mainClass>
-                                com.example.conciflex.retornopagamento/com.example.conciflex.retornopagamento.HelloApplication
+                                com.example.conciflex.retornopagamento/com.example.conciflex.MainApplication
                             </mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>

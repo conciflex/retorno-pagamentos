@@ -6,11 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="RetornoPagamento" />
+        <module name="conciflex" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="RetornoPagamento" target="17" />
+      <module name="conciflex" target="17" />
     </bytecodeTargetLevel>
   </component>
 </project>
