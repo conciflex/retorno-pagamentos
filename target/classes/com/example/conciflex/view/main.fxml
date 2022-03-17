@@ -79,22 +79,26 @@
                                     <left>14</left>
                                 </Insets>
                             </HBox.margin>
-                            <TimeSpinner fx:id="tfHorarioRetornoVendas" prefHeight="30" prefWidth="200"/>
+                            <TimeSpinner fx:id="tfTime" prefHeight="30" prefWidth="200"/>
                         </VBox>
-                        <VBox alignment="CENTER">
+                        <!--<VBox alignment="CENTER">
                             <HBox.margin>
                                 <Insets>
                                     <left>15</left>
                                 </Insets>
                             </HBox.margin>
-                            <Button prefHeight="28.0" prefWidth="30.0" textAlignment="CENTER" fx:id="buttonAddHour">
+                            <Button prefHeight="28.0"
+                                    prefWidth="30.0"
+                                    textAlignment="CENTER"
+                                    fx:id="buttonAddHour"
+                                    onAction="#addTime">
                                 <graphic>
                                     <ImageView>
                                         <Image url="@../images/plus-icon.png"/>
                                     </ImageView>
                                 </graphic>
                             </Button>
-                        </VBox>
+                        </VBox>-->
                         <VBox.margin>
                             <Insets>
                                 <bottom>15</bottom>
@@ -103,18 +107,18 @@
                     </HBox>
                     <HBox alignment="CENTER">
                         <VBox alignment="CENTER" fx:id="tableHour">
-                            <TableView fx:id="tbHour"
-                                       prefWidth="770"
-                                       prefHeight="150">
+                            <TableView fx:id="tvConfiguration"
+                                       prefWidth="740"
+                                       prefHeight="150"
+                                        maxWidth="740"
+                                        minWidth="740">
                                 <columnResizePolicy>
                                     <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                                 </columnResizePolicy>
                                 <columns>
-                                    <TableColumn fx:id="tcHour" text="Horário" style="-fx-alignment: CENTER;"/>
-                                    <TableColumn fx:id="tcDataInicial" text="Data Inicial" style="-fx-alignment: CENTER;"/>
-                                    <TableColumn fx:id="tcDataFinal" text="Data Final" style="-fx-alignment: CENTER;"/>
                                     <TableColumn fx:id="tcCliente" text="Cliente" style="-fx-alignment: CENTER;"/>
-                                    <TableColumn fx:id="tcRetorno" text="Retorno" style="-fx-alignment: CENTER;"/>
+                                    <TableColumn fx:id="tcHour" text="Horário" style="-fx-alignment: CENTER;"/>
+                                    <TableColumn fx:id="tcRetorno" text="Retorno (dias)" style="-fx-alignment: CENTER;"/>
                                     <TableColumn fx:id="tcOption" text="Opções"/>
                                 </columns>
                             </TableView>
@@ -206,7 +210,7 @@
                             </HBox.margin>
                         </VBox>
                         <VBox alignment="CENTER_LEFT">
-                            <Spinner min="0" max="100" prefWidth="245" prefHeight="30" fx:id="spRetornarDias"/>
+                            <Spinner min="0" max="100" prefWidth="245" prefHeight="30" fx:id="spRetornarDias" />
                         </VBox>
                         <VBox alignment="CENTER_LEFT">
                             <HBox.margin>
@@ -261,7 +265,9 @@
                         </Insets>
                     </VBox.margin>
 
-                    <Button prefHeight="33.0" prefWidth="82.0" textAlignment="CENTER" fx:id="button01">
+                    <Button prefHeight="33.0" prefWidth="82.0"
+                            textAlignment="CENTER" fx:id="button01"
+                            onAction="#sendPaymentReturn">
                         <graphic>
                             <ImageView>
                                 <Image url="@../images/button-title-enviar.png"/>
@@ -284,7 +290,7 @@
                         </Insets>
                     </VBox.margin>
 
-                    <Button prefHeight="33.0" prefWidth="82.0" textAlignment="CENTER" fx:id="button02">
+                    <Button prefHeight="33.0" prefWidth="82.0" textAlignment="CENTER" fx:id="button02" onAction="#configSave">
                         <graphic>
                             <ImageView>
                                 <Image url="@../images/button-title-salvar.png"/>
