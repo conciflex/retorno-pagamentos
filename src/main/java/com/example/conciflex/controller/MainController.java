@@ -147,6 +147,8 @@ public class MainController {
             e.printStackTrace();
         }
 
+        System.out.println(paymentObservableList.size());
+
     }
 
     public void loadConfig() {

@@ -149,7 +149,7 @@ public class JDBCPaymentDAO implements PaymentDAO {
 
         sql += "pagamentos_operadoras.taxa_percentual as cfam_taxaadm, ";
 
-        sql += "pnull as cfam_versao ";
+        sql += "null as cfam_versao ";
 
         sql += "FROM pagamentos_operadoras " +
                 "LEFT JOIN bandeira ON pagamentos_operadoras.cod_bandeira = bandeira.codigo " +
