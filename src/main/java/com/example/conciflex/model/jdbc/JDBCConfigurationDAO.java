@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 public class JDBCConfigurationDAO implements ConfigurationDAO {
     private static JDBCConfigurationDAO instance;
     private ObservableList<Configuration> configuracaoObservableList;
+    private int idFixedClient = 692;
 
     private JDBCConfigurationDAO(){
         configuracaoObservableList = FXCollections.observableArrayList();
@@ -44,7 +45,7 @@ public class JDBCConfigurationDAO implements ConfigurationDAO {
 
     @Override
     public void insert(Configuration configuration) throws Exception {
-        Connection connection = ConnectionFactory.getConnection();
+        Connection connection = ConnectionFactory.getConnectionConciflex();
 
         String sql = "insert into retorno_pagamento_rp_info(HORARIO, COD_CLIENTE, RETORNO_DIAS) values(?, ?, ?)";
 
@@ -61,7 +62,7 @@ public class JDBCConfigurationDAO implements ConfigurationDAO {
     @Override
     public ObservableList<Configuration> list() throws Exception {
         configuracaoObservableList.clear();
-        Connection connection = ConnectionFactory.getConnection();
+        Connection connection = ConnectionFactory.getConnectionConciflex();
 
         String sql = "select retorno_pagamento_rp_info.CODIGO, " +
                 "retorno_pagamento_rp_info.HORARIO, " +
@@ -89,7 +90,7 @@ public class JDBCConfigurationDAO implements ConfigurationDAO {
     public void delete(Configuration configuration) throws Exception {
         String sql = "delete from retorno_pagamento_rp_info where CODIGO = ?";
 
-        Connection connection = ConnectionFactory.getConnection();
+        Connection connection = ConnectionFactory.getConnectionConciflex();
         PreparedStatement statement = connection.prepareStatement(sql);
 
         statement.setInt(1, configuration.getId());
@@ -99,4 +100,57 @@ public class JDBCConfigurationDAO implements ConfigurationDAO {
         connection.close();
     }
 
+    @Override
+    public int searchReturnDays() throws Exception {
+        Connection connection = ConnectionFactory.getConnectionConciflex();
+
+        PreparedStatement preparedStatement;
+        String sql = "SELECT RETORNO_DIAS FROM retorno_pagamento_rp_info WHERE COD_CLIENTE = ?";
+        preparedStatement = connection.prepareStatement(sql);
+
+        preparedStatement.setInt(1, idFixedClient);
+
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        int returnDaysCount = 0;
+
+        if(resultSet.next()) {
+            returnDaysCount = resultSet.getInt("RETORNO_DIAS");
+        }
+
+        resultSet.close();
+        preparedStatement.close();
+        connection.close();
+
+        return returnDaysCount;
+    }
+
+    @Override
+    public ObservableList<String> listProcessingTimes() throws Exception {
+        ObservableList<String> processingTimesObservableList = FXCollections.observableArrayList();
+
+        Connection connection = ConnectionFactory.getConnectionConciflex();
+        PreparedStatement preparedStatement;
+
+        String sql = "select HORARIO from retorno_pagamento_rp_info where COD_CLIENTE = ?";
+
+        preparedStatement = connection.prepareStatement(sql);
+        preparedStatement.setInt(1, idFixedClient);
+
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        while(resultSet.next()) {
+            processingTimesObservableList.add(resultSet.getString("HORARIO"));
+        }
+
+        resultSet.close();
+        preparedStatement.close();
+        connection.close();
+
+        return processingTimesObservableList;
+    }
+
+    public int getIdFixedClient() {
+        return idFixedClient;
+    }
 }

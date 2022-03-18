@@ -14,19 +14,37 @@ public class ConnectionFactory {
     private static String USERNAME = "admin";
     private static String PASSWORD = "Conc!flex5";
 
+    private static String CONNECTION_STR_POST = "jdbc:postgresql:"+
+            "//192.168.1.200:5432/erp";
+    private static String USERNAME_POST = "postgres";
+    private static String PASSWORD_POST = "rp@1064";
+
     private static int MAX_CONNECTIONS=15;
 
     static {
         pool = new Connection[MAX_CONNECTIONS];
     }
 
-    public static Connection getConnection() throws SQLException {
+    public static Connection getConnectionConciflex() throws SQLException {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
         for(int i=0;i<pool.length;i++){
             if((pool[i]==null) || (pool[i].isClosed())){
-                pool[i] = DriverManager.getConnection(CONNECTION_STR,
-                        USERNAME,
-                        PASSWORD
-                );
+                pool[i] = DriverManager.getConnection(CONNECTION_STR, USERNAME, PASSWORD);
+                return pool[i];
+            }
+        }
+        throw new SQLException("Muitas conexões abertas!");
+    }
+
+    public static Connection getConnectionRPInfo() throws SQLException {
+        for(int i=0;i<pool.length;i++){
+            if((pool[i]==null) || (pool[i].isClosed())){
+                pool[i] = DriverManager.getConnection(CONNECTION_STR_POST, USERNAME_POST, PASSWORD_POST);
                 return pool[i];
             }
         }

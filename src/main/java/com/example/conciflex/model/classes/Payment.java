@@ -1,12 +1,13 @@
 package com.example.conciflex.model.classes;
 
 import java.sql.Date;
+import java.sql.Time;
 
 public class Payment {
     private String cfam_operacao;
     private Date cfam_datavenda;
     private String cfam_unid_codigo;
-    private String cfam_pger_conta;
+    private int cfam_pger_conta;
     private int cfam_lpgt_codigo;
     private Date cfam_datapgto;
     private double cfam_valorbruto;
@@ -14,29 +15,29 @@ public class Payment {
     private int cfam_parcela;
     private String cfam_nsu;
     private int cfam_adqu_codigo;
-    private String cfam_band_codigo;
+    private int cfam_band_codigo;
     private String cfam_band_descricao;
     private int cfam_banc_numero;
-    private String cfam_agen_numero;
+    private int cfam_agen_numero;
     private String cfam_ccor_numero;
     private String cfam_antecipado;
     private String cfam_registrooperacao;
     private int cfam_lanc_codigo;
     private String cfam_lanc_descricao;
-    private int cfam_ajus_codigo;
+    private String cfam_ajus_codigo;
     private String cfam_ajus_motivo;
     private String cfam_estabelecimento_conciflex;
     private double cfam_perctaxaantecipacao;
     private double cfam_valortaxaantecipacao;
     private String cfam_statusconc;
     private String cfam_statusprocessamento;
-    private String cfam_dataprocessamento;
+    private Date cfam_dataprocessamento;
     private String cfam_horaprocessamento;
     private String cfam_transacaobaixa;
     private int cfam_idconciflex;
-    private String cfam_dataincconciflex;
-    private String cfam_horaincconciflex;
-    private double cfam_taxaadm;
+    private Date cfam_dataincconciflex;
+    private Time cfam_horaincconciflex;
+    private float cfam_taxaadm;
     private String cfam_versao;
 
     public String getCfam_operacao() {
@@ -63,11 +64,11 @@ public class Payment {
         this.cfam_unid_codigo = cfam_unid_codigo;
     }
 
-    public String getCfam_pger_conta() {
+    public int getCfam_pger_conta() {
         return cfam_pger_conta;
     }
 
-    public void setCfam_pger_conta(String cfam_pger_conta) {
+    public void setCfam_pger_conta(int cfam_pger_conta) {
         this.cfam_pger_conta = cfam_pger_conta;
     }
 
@@ -127,11 +128,11 @@ public class Payment {
         this.cfam_adqu_codigo = cfam_adqu_codigo;
     }
 
-    public String getCfam_band_codigo() {
+    public int getCfam_band_codigo() {
         return cfam_band_codigo;
     }
 
-    public void setCfam_band_codigo(String cfam_band_codigo) {
+    public void setCfam_band_codigo(int cfam_band_codigo) {
         this.cfam_band_codigo = cfam_band_codigo;
     }
 
@@ -151,11 +152,11 @@ public class Payment {
         this.cfam_banc_numero = cfam_banc_numero;
     }
 
-    public String getCfam_agen_numero() {
+    public int getCfam_agen_numero() {
         return cfam_agen_numero;
     }
 
-    public void setCfam_agen_numero(String cfam_agen_numero) {
+    public void setCfam_agen_numero(int cfam_agen_numero) {
         this.cfam_agen_numero = cfam_agen_numero;
     }
 
@@ -199,11 +200,11 @@ public class Payment {
         this.cfam_lanc_descricao = cfam_lanc_descricao;
     }
 
-    public int getCfam_ajus_codigo() {
+    public String getCfam_ajus_codigo() {
         return cfam_ajus_codigo;
     }
 
-    public void setCfam_ajus_codigo(int cfam_ajus_codigo) {
+    public void setCfam_ajus_codigo(String cfam_ajus_codigo) {
         this.cfam_ajus_codigo = cfam_ajus_codigo;
     }
 
@@ -255,11 +256,11 @@ public class Payment {
         this.cfam_statusprocessamento = cfam_statusprocessamento;
     }
 
-    public String getCfam_dataprocessamento() {
+    public Date getCfam_dataprocessamento() {
         return cfam_dataprocessamento;
     }
 
-    public void setCfam_dataprocessamento(String cfam_dataprocessamento) {
+    public void setCfam_dataprocessamento(Date cfam_dataprocessamento) {
         this.cfam_dataprocessamento = cfam_dataprocessamento;
     }
 
@@ -287,27 +288,27 @@ public class Payment {
         this.cfam_idconciflex = cfam_idconciflex;
     }
 
-    public String getCfam_dataincconciflex() {
+    public Date getCfam_dataincconciflex() {
         return cfam_dataincconciflex;
     }
 
-    public void setCfam_dataincconciflex(String cfam_dataincconciflex) {
+    public void setCfam_dataincconciflex(Date cfam_dataincconciflex) {
         this.cfam_dataincconciflex = cfam_dataincconciflex;
     }
 
-    public String getCfam_horaincconciflex() {
+    public Time getCfam_horaincconciflex() {
         return cfam_horaincconciflex;
     }
 
-    public void setCfam_horaincconciflex(String cfam_horaincconciflex) {
+    public void setCfam_horaincconciflex(Time cfam_horaincconciflex) {
         this.cfam_horaincconciflex = cfam_horaincconciflex;
     }
 
-    public double getCfam_taxaadm() {
+    public float getCfam_taxaadm() {
         return cfam_taxaadm;
     }
 
-    public void setCfam_taxaadm(double cfam_taxaadm) {
+    public void setCfam_taxaadm(float cfam_taxaadm) {
         this.cfam_taxaadm = cfam_taxaadm;
     }
 

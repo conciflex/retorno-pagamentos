@@ -7,4 +7,6 @@ public interface ConfigurationDAO {
     void insert(Configuration configuration) throws Exception;
     ObservableList<Configuration> list() throws Exception;
     void delete(Configuration configuration) throws Exception;
+    int searchReturnDays() throws Exception;
+    ObservableList<String> listProcessingTimes() throws Exception;
 }

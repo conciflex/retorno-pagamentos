@@ -39,7 +39,7 @@ public class JDBCClientDAO implements ClientDAO {
     public ObservableList<Client> list() throws Exception {
         clientObservableList.clear();
 
-        Connection connection = ConnectionFactory.getConnection();
+        Connection connection = ConnectionFactory.getConnectionConciflex();
 
         PreparedStatement preparedStatement;
         String sql = "select CODIGO, NOME from clientes order by NOME";
@@ -56,5 +56,29 @@ public class JDBCClientDAO implements ClientDAO {
         connection.close();
 
         return clientObservableList;
+    }
+
+    @Override
+    public Client search(int id) throws Exception {
+        Connection connection = ConnectionFactory.getConnectionConciflex();
+
+        PreparedStatement preparedStatement;
+        String sql = "select CODIGO, NOME from clientes where CODIGO = ?";
+        preparedStatement = connection.prepareStatement(sql);
+        preparedStatement.setInt(1, id);
+
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        Client client = null;
+
+        if(resultSet.next()) {
+            client = loadClient(resultSet);
+        }
+
+        resultSet.close();
+        preparedStatement.close();
+        connection.close();
+
+        return client;
     }
 }

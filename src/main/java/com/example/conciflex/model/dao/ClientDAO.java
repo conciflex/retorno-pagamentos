@@ -5,4 +5,5 @@ import javafx.collections.ObservableList;
 
 public interface ClientDAO {
     ObservableList<Client> list() throws Exception;
+    Client search(int id) throws Exception;
 }

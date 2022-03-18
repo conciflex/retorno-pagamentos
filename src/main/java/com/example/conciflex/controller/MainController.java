@@ -7,6 +7,7 @@ import com.example.conciflex.model.jdbc.JDBCClientDAO;
 import com.example.conciflex.model.jdbc.JDBCConfigurationDAO;
 import com.example.conciflex.model.jdbc.JDBCPaymentDAO;
 import com.example.conciflex.util.TimeSpinner;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -16,7 +17,6 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.util.Callback;
-
 import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -34,9 +34,6 @@ public class MainController {
     public TimeSpinner tfTime;
 
     @FXML
-    public ComboBox<Client> cbCliente;
-
-    @FXML
     public DatePicker dpDataInicial;
 
     @FXML
@@ -49,9 +46,6 @@ public class MainController {
     public TableColumn tcHour;
 
     @FXML
-    public TableColumn tcCliente;
-
-    @FXML
     public TableColumn tcRetorno;
 
     @FXML
@@ -59,18 +53,29 @@ public class MainController {
 
     private ObservableList<Client> clientObservableList = FXCollections.observableArrayList();
     private ObservableList<Configuration> configurationObservableList = FXCollections.observableArrayList();
+    private ObservableList<String> processTimesObservableList = FXCollections.observableArrayList();
+    private ObservableList<java.sql.Date> returnDaysObservableList = FXCollections.observableArrayList();
+    private static Client selectedClient;
+    private static int paymentsReturnSize;
 
     public void initialize() {
+        try {
+            selectedClient = JDBCClientDAO.getInstance().search(JDBCConfigurationDAO.getInstance().getIdFixedClient());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         lbMensagem.setVisible(false);
         spRetornarDias.getValueFactory().setValue(1);
 
         dpDataInicial.setValue(LocalDate.now());
         dpDataFinal.setValue(LocalDate.now());
 
-        listClients();
         loadConfig();
 
-        tvConfiguration.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        this.getConfiguration();
+
+        processData();
     }
 
     @FXML
@@ -79,7 +84,6 @@ public class MainController {
         String timeString = String.valueOf(tfTime.getValue());
         int days = (int) spRetornarDias.getValue();
         boolean verificar = true;
-        Client client = cbCliente.getSelectionModel().getSelectedItem();
 
         if(timeString == null) {
             mostrarMensagem("Por favor selecione um horário de envio!");
@@ -110,16 +114,11 @@ public class MainController {
             mostrarMensagem("Por favor, selecione um horário...");
         }
 
-        if(client.getId() == 0) {
-            verificar = false;
-            mostrarMensagem("Por favor, selecione um cliente...");
-        }
-
         if(verificar) {
             Configuration configuration = new Configuration();
 
             configuration.setTime(time.toString());
-            configuration.setClientId(client.getId());
+            configuration.setClientId(JDBCConfigurationDAO.getInstance().getIdFixedClient());
             configuration.setReturnDays(days);
 
             try {
@@ -129,33 +128,166 @@ public class MainController {
                 e.printStackTrace();
             }
         }
+
+        loadConfig();
     }
 
     @FXML
     public void sendPaymentReturn() {
-        Client client = cbCliente.getSelectionModel().getSelectedItem();
-        java.sql.Date startDate = java.sql.Date.valueOf(dpDataInicial.getValue());
-        java.sql.Date endDate = java.sql.Date.valueOf(dpDataFinal.getValue());
+        Thread threadSendPaymentReturn = new Thread(() -> {
+            boolean verify = true;
 
-        mostrarMensagem("Buscando os dados do cliente " + client.getName() + "...");
+            if(verify) {
+                java.sql.Date startDate = java.sql.Date.valueOf(dpDataInicial.getValue());
+                java.sql.Date endDate = java.sql.Date.valueOf(dpDataFinal.getValue());
 
-        ObservableList<Payment> paymentObservableList = FXCollections.observableArrayList();
+                Platform.runLater(() -> {
+                    mostrarMensagem("Buscando os dados do cliente " + selectedClient.getName() + "...");
+                });
 
-        try {
-            paymentObservableList = JDBCPaymentDAO.getInstance().list(client, startDate, endDate);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+                ObservableList<Payment> paymentObservableList = FXCollections.observableArrayList();
 
-        System.out.println(paymentObservableList.size());
+                try {
+                    paymentObservableList = JDBCPaymentDAO.getInstance().list(selectedClient, startDate, endDate);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
+                Platform.runLater(() -> {
+                    mostrarMensagem("Limpando a tabela cflexarquivomovimento");
+                });
+
+                try {
+                    JDBCPaymentDAO.getInstance().clearTable();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                Platform.runLater(() -> {
+                    mostrarMensagem("Inserindo os dados do cliente " + selectedClient.getName() + "...");
+                });
+
+                for (Payment payment:paymentObservableList) {
+                    try {
+                        JDBCPaymentDAO.getInstance().create(payment);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                paymentsReturnSize = paymentObservableList.size();
+
+                Platform.runLater(() -> {
+                    mostrarMensagem("Processamento concluído! Quantidade inserida: " + paymentsReturnSize);
+                });
+            }
+        });
+
+        threadSendPaymentReturn.setDaemon(true);
+        threadSendPaymentReturn.start();
+    }
+
+    public void processData() {
+        Thread threadSendPaymentReturn = new Thread(() -> {
+            while(true) {
+                this.getConfiguration();
+
+                for (String processTime: processTimesObservableList) {
+                    SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
+                    String now = formatter.format(new Date());
+                    Date processDateTime = null;
+                    Date nowDateTime = null;
+
+                    try {
+                        processDateTime = formatter.parse(processTime);
+                        nowDateTime = formatter.parse(now);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+
+                    if (processDateTime != null && processDateTime.equals(nowDateTime)) {
+                        Platform.runLater(() -> {
+                            mostrarMensagem("Limpando a tabela cflexarquivomovimento");
+                        });
+
+                        try {
+                            JDBCPaymentDAO.getInstance().clearTable();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        try {
+                            Thread.sleep(3000);
+                        } catch (InterruptedException ex) {
+                            ex.printStackTrace();
+                        }
+
+                        for (java.sql.Date returnDay: returnDaysObservableList) {
+                            SimpleDateFormat formatter2 = new SimpleDateFormat("dd/MM/yyyy");
+                            String dayString = formatter2.format(returnDay);
+
+                            Platform.runLater(() -> {
+                                mostrarMensagem("Buscando os dados do cliente " + selectedClient.getName() + " do dia "+dayString+"...");
+                            });
+
+                            ObservableList<Payment> paymentObservableList = FXCollections.observableArrayList();
+
+                            try {
+                                paymentObservableList = JDBCPaymentDAO.getInstance().list(selectedClient, returnDay, returnDay);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+
+                            try {
+                                Thread.sleep(3000);
+                            } catch (InterruptedException ex) {
+                                ex.printStackTrace();
+                            }
+
+                            Platform.runLater(() -> {
+                                mostrarMensagem("Inserindo os dados do cliente " + selectedClient.getName() + " do dia "+dayString+"...");
+                            });
+
+                            for (Payment payment:paymentObservableList) {
+                                try {
+                                    JDBCPaymentDAO.getInstance().create(payment);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+
+                            paymentsReturnSize = paymentObservableList.size();
+
+                            try {
+                                Thread.sleep(3000);
+                            } catch (InterruptedException ex) {
+                                ex.printStackTrace();
+                            }
+
+                            Platform.runLater(() -> {
+                                mostrarMensagem("Processamento concluído! Quantidade inserida: " + paymentsReturnSize);
+                            });
+                        }
+                    }
+                }
+
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
+        threadSendPaymentReturn.setDaemon(true);
+        threadSendPaymentReturn.start();
     }
 
     public void loadConfig() {
         configurationObservableList.clear();
 
         tcHour.setCellValueFactory(new PropertyValueFactory<>("time"));
-        tcCliente.setCellValueFactory(new PropertyValueFactory<>("clientName"));
+        /*tcCliente.setCellValueFactory(new PropertyValueFactory<>("clientName"));*/
         tcRetorno.setCellValueFactory(new PropertyValueFactory<>("returnDays"));
 
 
@@ -220,7 +352,36 @@ public class MainController {
         loadConfig();
     }
 
-    public void listClients() {
+    public void getConfiguration() {
+        returnDaysObservableList.clear();
+        processTimesObservableList.clear();
+
+        int returnDaysCount = 0;
+
+        try {
+            returnDaysCount = JDBCConfigurationDAO.getInstance().searchReturnDays();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        java.sql.Date todayDateSQL = java.sql.Date.valueOf(LocalDate.now());
+        returnDaysObservableList.add(todayDateSQL);
+
+        if(returnDaysCount != 0) {
+            for (int i = 1; i <= returnDaysCount; i++) {
+                java.sql.Date date = java.sql.Date.valueOf(LocalDate.now().minusDays(i));
+                returnDaysObservableList.add(date);
+            }
+        }
+
+        try {
+            processTimesObservableList = JDBCConfigurationDAO.getInstance().listProcessingTimes();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /*public void listClients() {
         clientObservableList.clear();
 
         clientObservableList.add(new Client(0, "Selecione um cliente"));
@@ -233,7 +394,7 @@ public class MainController {
 
         cbCliente.setItems(clientObservableList);
         cbCliente.getSelectionModel().select(0);
-    }
+    }*/
 
     public void mostrarMensagem(String mensagem) {
         lbMensagem.setVisible(true);

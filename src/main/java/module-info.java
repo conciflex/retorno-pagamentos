@@ -4,6 +4,8 @@ module com.example.conciflex {
 
     requires org.kordamp.bootstrapfx.core;
     requires java.sql;
+    requires mysql.connector.java;
+    requires org.postgresql.jdbc;
 
     exports com.example.conciflex;
     exports com.example.conciflex.controller;
