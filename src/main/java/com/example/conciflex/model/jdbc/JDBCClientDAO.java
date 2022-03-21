@@ -42,7 +42,7 @@ public class JDBCClientDAO implements ClientDAO {
         Connection connection = ConnectionFactory.getConnectionConciflex();
 
         PreparedStatement preparedStatement;
-        String sql = "select CODIGO, NOME from clientes order by NOME";
+        String sql = "select CODIGO, NOME from clientes WHERE COD_ERP IN (5, 6, 7) order by NOME";
         preparedStatement = connection.prepareStatement(sql);
 
         ResultSet resultSet = preparedStatement.executeQuery();

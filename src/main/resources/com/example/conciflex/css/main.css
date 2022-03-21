@@ -113,7 +113,7 @@
     -fx-background-color: transparent;
 }
 
-#dpDataInicial, #dpDataFinal, #cbCliente, #spRetornarDias {
+#dpDataInicial, #dpDataFinal, #cbClients, #spRetornarDias {
     -fx-background-color: rgb(45, 82, 117, 0.20);
 }
 

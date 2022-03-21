@@ -12,7 +12,7 @@ import java.sql.ResultSet;
 public class JDBCConfigurationDAO implements ConfigurationDAO {
     private static JDBCConfigurationDAO instance;
     private ObservableList<Configuration> configuracaoObservableList;
-    private int idFixedClient = 692;
+    private int idFixedClient = 660;
 
     private JDBCConfigurationDAO(){
         configuracaoObservableList = FXCollections.observableArrayList();

@@ -17,10 +17,16 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.util.Callback;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 public class MainController {
@@ -58,6 +64,8 @@ public class MainController {
     private static Client selectedClient;
     private static int paymentsReturnSize;
 
+    private String fileName = "C:\\Users\\Administrador\\Documents\\conciflex\\log.txt";
+
     public void initialize() {
         try {
             selectedClient = JDBCClientDAO.getInstance().search(JDBCConfigurationDAO.getInstance().getIdFixedClient());
@@ -71,11 +79,9 @@ public class MainController {
         dpDataInicial.setValue(LocalDate.now());
         dpDataFinal.setValue(LocalDate.now());
 
-        loadConfig();
-
+        this.loadConfig();
         this.getConfiguration();
-
-        processData();
+        this.processData();
     }
 
     @FXML
@@ -134,6 +140,8 @@ public class MainController {
 
     @FXML
     public void sendPaymentReturn() {
+        gravarLog("#1 Enviando retorno de pagamento... ");
+
         Thread threadSendPaymentReturn = new Thread(() -> {
             java.sql.Date startDate = java.sql.Date.valueOf(dpDataInicial.getValue());
             java.sql.Date endDate = java.sql.Date.valueOf(dpDataFinal.getValue());
@@ -190,20 +198,51 @@ public class MainController {
             while(true) {
                 this.getConfiguration();
 
-                for (String processTime: processTimesObservableList) {
+                for (Configuration configuration: configurationObservableList) {
                     SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
                     String now = formatter.format(new Date());
                     Date processDateTime = null;
                     Date nowDateTime = null;
 
                     try {
-                        processDateTime = formatter.parse(processTime);
+                        processDateTime = formatter.parse(configuration.getTime());
                         nowDateTime = formatter.parse(now);
                     } catch (ParseException e) {
                         e.printStackTrace();
                     }
 
+                    paymentsReturnSize = 0;
+
+                    System.out.printf("");
+
                     if (processDateTime != null && processDateTime.equals(nowDateTime)) {
+                        PrintWriter writer = null;
+
+                        try {
+                            writer = new PrintWriter(fileName);
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+
+                        writer.print("");
+                        writer.close();
+
+                        gravarLog("Entrou...");
+
+                        returnDaysObservableList.clear();
+
+                        java.sql.Date todayDateSQL = java.sql.Date.valueOf(LocalDate.now());
+                        returnDaysObservableList.add(todayDateSQL);
+
+                        if(configuration.getReturnDays() != 0) {
+                            for (int i = 1; i <= configuration.getReturnDays(); i++) {
+                                java.sql.Date date = java.sql.Date.valueOf(LocalDate.now().minusDays(i));
+                                returnDaysObservableList.add(date);
+                            }
+                        }
+
+                        gravarLog("Limpando a tabela cflexarquivomovimento");
+
                         Platform.runLater(() -> {
                             mostrarMensagem("Limpando a tabela cflexarquivomovimento");
                         });
@@ -214,11 +253,11 @@ public class MainController {
                             e.printStackTrace();
                         }
 
-                        try {
+                        /*try {
                             Thread.sleep(3000);
                         } catch (InterruptedException ex) {
                             ex.printStackTrace();
-                        }
+                        }*/
 
                         for (java.sql.Date returnDay: returnDaysObservableList) {
                             SimpleDateFormat formatter2 = new SimpleDateFormat("dd/MM/yyyy");
@@ -227,6 +266,8 @@ public class MainController {
                             Platform.runLater(() -> {
                                 mostrarMensagem("Buscando os dados do cliente " + selectedClient.getName() + " do dia "+dayString+"...");
                             });
+
+                            gravarLog("Buscando os dados do cliente " + selectedClient.getName() + " do dia "+dayString+"...");
 
                             ObservableList<Payment> paymentObservableList = FXCollections.observableArrayList();
 
@@ -238,15 +279,17 @@ public class MainController {
                                 e.printStackTrace();
                             }
 
-                            try {
+                            /*try {
                                 Thread.sleep(3000);
                             } catch (InterruptedException ex) {
                                 ex.printStackTrace();
-                            }
+                            }*/
 
                             Platform.runLater(() -> {
                                 mostrarMensagem("Inserindo os dados do cliente " + selectedClient.getName() + " do dia "+dayString+"...");
                             });
+
+                            gravarLog("Inserindo os dados do cliente " + selectedClient.getName() + " do dia "+dayString+"...");
 
                             for (Payment payment:paymentObservableList) {
                                 try {
@@ -256,26 +299,28 @@ public class MainController {
                                 }
                             }
 
-                            paymentsReturnSize = paymentObservableList.size();
+                            paymentsReturnSize += paymentObservableList.size();
 
-                            try {
+                            /*try {
                                 Thread.sleep(3000);
                             } catch (InterruptedException ex) {
                                 ex.printStackTrace();
-                            }
+                            }*/
 
                             Platform.runLater(() -> {
                                 mostrarMensagem("Processamento concluído! Quantidade inserida: " + paymentsReturnSize);
                             });
+
+                            gravarLog("Processamento concluído! Quantidade inserida: " + paymentsReturnSize);
                         }
                     }
                 }
 
-                try {
-                    Thread.sleep(3000);
+                /*try {
+                    Thread.sleep(1000);
                 } catch (InterruptedException ex) {
                     ex.printStackTrace();
-                }
+                }*/
             }
         });
 
@@ -353,26 +398,7 @@ public class MainController {
     }
 
     public void getConfiguration() {
-        returnDaysObservableList.clear();
         processTimesObservableList.clear();
-
-        int returnDaysCount = 0;
-
-        try {
-            returnDaysCount = JDBCConfigurationDAO.getInstance().searchReturnDays();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        java.sql.Date todayDateSQL = java.sql.Date.valueOf(LocalDate.now());
-        returnDaysObservableList.add(todayDateSQL);
-
-        if(returnDaysCount != 0) {
-            for (int i = 1; i <= returnDaysCount; i++) {
-                java.sql.Date date = java.sql.Date.valueOf(LocalDate.now().minusDays(i));
-                returnDaysObservableList.add(date);
-            }
-        }
 
         try {
             processTimesObservableList = JDBCConfigurationDAO.getInstance().listProcessingTimes();
@@ -381,23 +407,26 @@ public class MainController {
         }
     }
 
-    /*public void listClients() {
-        clientObservableList.clear();
-
-        clientObservableList.add(new Client(0, "Selecione um cliente"));
-
-        try {
-            clientObservableList.addAll(JDBCClientDAO.getInstance().list());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        cbCliente.setItems(clientObservableList);
-        cbCliente.getSelectionModel().select(0);
-    }*/
-
     public void mostrarMensagem(String mensagem) {
         lbMensagem.setVisible(true);
         lbMensagem.setText(mensagem);
+    }
+
+    public void gravarLog(String log) {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        LocalDateTime now = LocalDateTime.now();
+
+        PrintWriter printer = null;
+        FileWriter fw = null;
+
+        try {
+            fw = new FileWriter(fileName, true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        printer = new PrintWriter(fw);
+        printer.println(dtf.format(now) + " - " +log);
+        printer.close();
     }
 }
