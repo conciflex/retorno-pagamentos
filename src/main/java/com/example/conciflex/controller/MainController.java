@@ -135,52 +135,50 @@ public class MainController {
     @FXML
     public void sendPaymentReturn() {
         Thread threadSendPaymentReturn = new Thread(() -> {
-            boolean verify = true;
+            java.sql.Date startDate = java.sql.Date.valueOf(dpDataInicial.getValue());
+            java.sql.Date endDate = java.sql.Date.valueOf(dpDataFinal.getValue());
 
-            if(verify) {
-                java.sql.Date startDate = java.sql.Date.valueOf(dpDataInicial.getValue());
-                java.sql.Date endDate = java.sql.Date.valueOf(dpDataFinal.getValue());
+            String query = QueryController.getSearchQuery();
 
-                Platform.runLater(() -> {
-                    mostrarMensagem("Buscando os dados do cliente " + selectedClient.getName() + "...");
-                });
+            Platform.runLater(() -> {
+                mostrarMensagem("Buscando os dados do cliente " + selectedClient.getName() + "...");
+            });
 
-                ObservableList<Payment> paymentObservableList = FXCollections.observableArrayList();
+            ObservableList<Payment> paymentObservableList = FXCollections.observableArrayList();
 
-                try {
-                    paymentObservableList = JDBCPaymentDAO.getInstance().list(selectedClient, startDate, endDate);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                Platform.runLater(() -> {
-                    mostrarMensagem("Limpando a tabela cflexarquivomovimento");
-                });
-
-                try {
-                    JDBCPaymentDAO.getInstance().clearTable();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                Platform.runLater(() -> {
-                    mostrarMensagem("Inserindo os dados do cliente " + selectedClient.getName() + "...");
-                });
-
-                for (Payment payment:paymentObservableList) {
-                    try {
-                        JDBCPaymentDAO.getInstance().create(payment);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                paymentsReturnSize = paymentObservableList.size();
-
-                Platform.runLater(() -> {
-                    mostrarMensagem("Processamento concluído! Quantidade inserida: " + paymentsReturnSize);
-                });
+            try {
+                paymentObservableList = JDBCPaymentDAO.getInstance().list(selectedClient, startDate, endDate, query);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+
+            Platform.runLater(() -> {
+                mostrarMensagem("Limpando a tabela cflexarquivomovimento");
+            });
+
+            try {
+                JDBCPaymentDAO.getInstance().clearTable();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            Platform.runLater(() -> {
+                mostrarMensagem("Inserindo os dados do cliente " + selectedClient.getName() + "...");
+            });
+
+            for (Payment payment:paymentObservableList) {
+                try {
+                    JDBCPaymentDAO.getInstance().create(payment);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            paymentsReturnSize = paymentObservableList.size();
+
+            Platform.runLater(() -> {
+                mostrarMensagem("Processamento concluído! Quantidade inserida: " + paymentsReturnSize);
+            });
         });
 
         threadSendPaymentReturn.setDaemon(true);
@@ -232,8 +230,10 @@ public class MainController {
 
                             ObservableList<Payment> paymentObservableList = FXCollections.observableArrayList();
 
+                            String query = QueryController.getSearchQuery();
+
                             try {
-                                paymentObservableList = JDBCPaymentDAO.getInstance().list(selectedClient, returnDay, returnDay);
+                                paymentObservableList = JDBCPaymentDAO.getInstance().list(selectedClient, returnDay, returnDay, query);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }

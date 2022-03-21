@@ -6,7 +6,7 @@ import javafx.collections.ObservableList;
 import java.sql.Date;
 
 public interface PaymentDAO {
-    ObservableList<Payment> list(Client client, Date startDate, Date endDate) throws Exception;
+    ObservableList<Payment> list(Client client, Date startDate, Date endDate, String querySQL) throws Exception;
     void create(Payment payment) throws Exception;
     void clearTable() throws Exception;
 }
