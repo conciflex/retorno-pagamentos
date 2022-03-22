@@ -2,9 +2,11 @@ package com.example.conciflex.controller;
 
 import com.example.conciflex.model.classes.Client;
 import com.example.conciflex.model.classes.Configuration;
+import com.example.conciflex.model.classes.Log;
 import com.example.conciflex.model.classes.Payment;
 import com.example.conciflex.model.jdbc.JDBCClientDAO;
 import com.example.conciflex.model.jdbc.JDBCConfigurationDAO;
+import com.example.conciflex.model.jdbc.JDBCLogDAO;
 import com.example.conciflex.model.jdbc.JDBCPaymentDAO;
 import com.example.conciflex.util.TimeSpinner;
 import javafx.application.Platform;
@@ -17,16 +19,13 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.util.Callback;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
 import java.util.Date;
 
 public class MainController {
@@ -57,20 +56,18 @@ public class MainController {
     @FXML
     public TableColumn tcOption;
 
-    private ObservableList<Client> clientObservableList = FXCollections.observableArrayList();
     private ObservableList<Configuration> configurationObservableList = FXCollections.observableArrayList();
-    private ObservableList<String> processTimesObservableList = FXCollections.observableArrayList();
     private ObservableList<java.sql.Date> returnDaysObservableList = FXCollections.observableArrayList();
     private static Client selectedClient;
     private static int paymentsReturnSize;
-
-    private String fileName = "C:\\Users\\Administrador\\Documents\\conciflex\\log.txt";
+    private String successType = "Sucesso";
+    private String errorType = "Erro";
 
     public void initialize() {
         try {
             selectedClient = JDBCClientDAO.getInstance().search(JDBCConfigurationDAO.getInstance().getIdFixedClient());
         } catch (Exception e) {
-            e.printStackTrace();
+            writeMessageLog("#1 " + e, errorType);
         }
 
         lbMensagem.setVisible(false);
@@ -92,14 +89,14 @@ public class MainController {
         boolean verificar = true;
 
         if(timeString == null) {
-            mostrarMensagem("Por favor selecione um horário de envio!");
+            showMessage("Por favor selecione um horário de envio!");
         } else {
             Date timeDate = null;
 
             try {
                 timeDate = new SimpleDateFormat("HH:mm").parse(timeString);
             } catch (ParseException e) {
-                e.printStackTrace();
+                writeMessageLog("#2 " + e, errorType);
             }
 
             if (timeDate != null) {
@@ -117,7 +114,7 @@ public class MainController {
 
         if(time == null) {
             verificar = false;
-            mostrarMensagem("Por favor, selecione um horário...");
+            showMessage("Por favor, selecione um horário...");
         }
 
         if(verificar) {
@@ -129,9 +126,9 @@ public class MainController {
 
             try {
                 JDBCConfigurationDAO.getInstance().insert(configuration);
-                mostrarMensagem("Configuração adicionada!");
+                showMessage("Configuração adicionada!");
             } catch (Exception e) {
-                e.printStackTrace();
+                writeMessageLog("#3 " + e, errorType);
             }
         }
 
@@ -140,16 +137,16 @@ public class MainController {
 
     @FXML
     public void sendPaymentReturn() {
-        gravarLog("#1 Enviando retorno de pagamento... ");
-
         Thread threadSendPaymentReturn = new Thread(() -> {
             java.sql.Date startDate = java.sql.Date.valueOf(dpDataInicial.getValue());
             java.sql.Date endDate = java.sql.Date.valueOf(dpDataFinal.getValue());
 
             String query = QueryController.getSearchQuery();
 
+            writeMessageLog("Buscando os dados do cliente " + selectedClient.getName() + "...", successType);
+
             Platform.runLater(() -> {
-                mostrarMensagem("Buscando os dados do cliente " + selectedClient.getName() + "...");
+                showMessage("Buscando os dados do cliente " + selectedClient.getName() + "...");
             });
 
             ObservableList<Payment> paymentObservableList = FXCollections.observableArrayList();
@@ -157,35 +154,41 @@ public class MainController {
             try {
                 paymentObservableList = JDBCPaymentDAO.getInstance().list(selectedClient, startDate, endDate, query);
             } catch (Exception e) {
-                e.printStackTrace();
+                writeMessageLog("#4 " + e, errorType);
             }
 
+            writeMessageLog("Limpando a tabela cflexarquivomovimento", successType);
+
             Platform.runLater(() -> {
-                mostrarMensagem("Limpando a tabela cflexarquivomovimento");
+                showMessage("Limpando a tabela cflexarquivomovimento");
             });
 
             try {
                 JDBCPaymentDAO.getInstance().clearTable();
             } catch (Exception e) {
-                e.printStackTrace();
+                writeMessageLog("#5 " + e, errorType);
             }
 
+            writeMessageLog("Inserindo os dados do cliente " + selectedClient.getName() + "...", successType);
+
             Platform.runLater(() -> {
-                mostrarMensagem("Inserindo os dados do cliente " + selectedClient.getName() + "...");
+                showMessage("Inserindo os dados do cliente " + selectedClient.getName() + "...");
             });
 
             for (Payment payment:paymentObservableList) {
                 try {
                     JDBCPaymentDAO.getInstance().create(payment);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    writeMessageLog("#6 " + e, errorType);
                 }
             }
 
             paymentsReturnSize = paymentObservableList.size();
 
+            writeMessageLog("Processamento concluído! Quantidade inserida: " + paymentsReturnSize, successType);
+
             Platform.runLater(() -> {
-                mostrarMensagem("Processamento concluído! Quantidade inserida: " + paymentsReturnSize);
+                showMessage("Processamento concluído! Quantidade inserida: " + paymentsReturnSize);
             });
         });
 
@@ -208,27 +211,12 @@ public class MainController {
                         processDateTime = formatter.parse(configuration.getTime());
                         nowDateTime = formatter.parse(now);
                     } catch (ParseException e) {
-                        e.printStackTrace();
+                        writeMessageLog("#7 " + e, errorType);
                     }
 
                     paymentsReturnSize = 0;
 
-                    System.out.printf("");
-
                     if (processDateTime != null && processDateTime.equals(nowDateTime)) {
-                        PrintWriter writer = null;
-
-                        try {
-                            writer = new PrintWriter(fileName);
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
-                        }
-
-                        writer.print("");
-                        writer.close();
-
-                        gravarLog("Entrou...");
-
                         returnDaysObservableList.clear();
 
                         java.sql.Date todayDateSQL = java.sql.Date.valueOf(LocalDate.now());
@@ -241,33 +229,33 @@ public class MainController {
                             }
                         }
 
-                        gravarLog("Limpando a tabela cflexarquivomovimento");
+                        writeMessageLog("Limpando a tabela cflexarquivomovimento", successType);
 
                         Platform.runLater(() -> {
-                            mostrarMensagem("Limpando a tabela cflexarquivomovimento");
+                            showMessage("Limpando a tabela cflexarquivomovimento");
                         });
 
                         try {
                             JDBCPaymentDAO.getInstance().clearTable();
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            writeMessageLog("#8 " + e, errorType);
                         }
 
-                        /*try {
+                        try {
                             Thread.sleep(3000);
-                        } catch (InterruptedException ex) {
-                            ex.printStackTrace();
-                        }*/
+                        } catch (InterruptedException e) {
+                            writeMessageLog("#9 " + e, errorType);
+                        }
 
                         for (java.sql.Date returnDay: returnDaysObservableList) {
                             SimpleDateFormat formatter2 = new SimpleDateFormat("dd/MM/yyyy");
                             String dayString = formatter2.format(returnDay);
 
                             Platform.runLater(() -> {
-                                mostrarMensagem("Buscando os dados do cliente " + selectedClient.getName() + " do dia "+dayString+"...");
+                                showMessage("Buscando os dados do cliente " + selectedClient.getName() + " do dia "+dayString+"...");
                             });
 
-                            gravarLog("Buscando os dados do cliente " + selectedClient.getName() + " do dia "+dayString+"...");
+                            writeMessageLog("Buscando os dados do cliente " + selectedClient.getName() + " do dia "+dayString+"...", successType);
 
                             ObservableList<Payment> paymentObservableList = FXCollections.observableArrayList();
 
@@ -276,51 +264,51 @@ public class MainController {
                             try {
                                 paymentObservableList = JDBCPaymentDAO.getInstance().list(selectedClient, returnDay, returnDay, query);
                             } catch (Exception e) {
-                                e.printStackTrace();
+                                writeMessageLog("#10 " + e, errorType);
                             }
 
-                            /*try {
+                            try {
                                 Thread.sleep(3000);
-                            } catch (InterruptedException ex) {
-                                ex.printStackTrace();
-                            }*/
+                            } catch (InterruptedException e) {
+                                writeMessageLog("#11 " + e, errorType);
+                            }
 
                             Platform.runLater(() -> {
-                                mostrarMensagem("Inserindo os dados do cliente " + selectedClient.getName() + " do dia "+dayString+"...");
+                                showMessage("Inserindo os dados do cliente " + selectedClient.getName() + " do dia "+dayString+"...");
                             });
 
-                            gravarLog("Inserindo os dados do cliente " + selectedClient.getName() + " do dia "+dayString+"...");
+                            writeMessageLog("Inserindo os dados do cliente " + selectedClient.getName() + " do dia "+dayString+"...", successType);
 
                             for (Payment payment:paymentObservableList) {
                                 try {
                                     JDBCPaymentDAO.getInstance().create(payment);
                                 } catch (Exception e) {
-                                    e.printStackTrace();
+                                    writeMessageLog("#12 " + e, errorType);
                                 }
                             }
 
                             paymentsReturnSize += paymentObservableList.size();
 
-                            /*try {
+                            try {
                                 Thread.sleep(3000);
-                            } catch (InterruptedException ex) {
-                                ex.printStackTrace();
-                            }*/
+                            } catch (InterruptedException e) {
+                                writeMessageLog("#13 " + e, errorType);
+                            }
 
                             Platform.runLater(() -> {
-                                mostrarMensagem("Processamento concluído! Quantidade inserida: " + paymentsReturnSize);
+                                showMessage("Processamento concluído! Quantidade inserida: " + paymentsReturnSize);
                             });
 
-                            gravarLog("Processamento concluído! Quantidade inserida: " + paymentsReturnSize);
+                            writeMessageLog("Processamento concluído! Quantidade inserida: " + paymentsReturnSize, successType);
                         }
                     }
                 }
 
-                /*try {
+                try {
                     Thread.sleep(1000);
                 } catch (InterruptedException ex) {
                     ex.printStackTrace();
-                }*/
+                }
             }
         });
 
@@ -329,22 +317,21 @@ public class MainController {
     }
 
     public void loadConfig() {
-        configurationObservableList.clear();
+        ObservableList<Configuration> observableList = FXCollections.observableArrayList();
 
         tcHour.setCellValueFactory(new PropertyValueFactory<>("time"));
-        /*tcCliente.setCellValueFactory(new PropertyValueFactory<>("clientName"));*/
         tcRetorno.setCellValueFactory(new PropertyValueFactory<>("returnDays"));
 
 
         try {
-            configurationObservableList.addAll(JDBCConfigurationDAO.getInstance().list());
+            observableList.addAll(JDBCConfigurationDAO.getInstance().list());
         } catch (Exception e) {
-            e.printStackTrace();
+            writeMessageLog("#14 " + e, errorType);
         }
 
         addButtonTableConfiguration();
 
-        tvConfiguration.setItems(configurationObservableList);
+        tvConfiguration.setItems(observableList);
     }
 
     public void addButtonTableConfiguration() {
@@ -389,44 +376,41 @@ public class MainController {
     public void remove(Configuration configuration) {
         try {
             JDBCConfigurationDAO.getInstance().delete(configuration);
-            mostrarMensagem("Configuração deletada!");
+            showMessage("Configuração deletada!");
         } catch (Exception e) {
-            e.printStackTrace();
+            writeMessageLog("#15 " + e, errorType);
         }
 
         loadConfig();
     }
 
     public void getConfiguration() {
-        processTimesObservableList.clear();
+        configurationObservableList.clear();
 
         try {
-            processTimesObservableList = JDBCConfigurationDAO.getInstance().listProcessingTimes();
+            configurationObservableList.addAll(JDBCConfigurationDAO.getInstance().list());
         } catch (Exception e) {
-            e.printStackTrace();
+            writeMessageLog("#16 " + e, errorType);
         }
     }
 
-    public void mostrarMensagem(String mensagem) {
+    public void showMessage(String mensagem) {
         lbMensagem.setVisible(true);
         lbMensagem.setText(mensagem);
     }
 
-    public void gravarLog(String log) {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    public void writeMessageLog(String message, String type) {
+        java.sql.Date nowDateSQL = new java.sql.Date(Calendar.getInstance().getTime().getTime());
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");
         LocalDateTime now = LocalDateTime.now();
+        Time nowTimeSQL = Time.valueOf(dtf.format(now));
 
-        PrintWriter printer = null;
-        FileWriter fw = null;
+        Log log = new Log(selectedClient.getId(), message, nowDateSQL, nowTimeSQL, type);
 
         try {
-            fw = new FileWriter(fileName, true);
-        } catch (IOException e) {
-            e.printStackTrace();
+            JDBCLogDAO.getInstance().create(log);
+        } catch (Exception e) {
+            writeMessageLog("#17 " + e, errorType);
         }
-
-        printer = new PrintWriter(fw);
-        printer.println(dtf.format(now) + " - " +log);
-        printer.close();
     }
 }
