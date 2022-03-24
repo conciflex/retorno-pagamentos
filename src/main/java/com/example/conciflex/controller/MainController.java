@@ -1,13 +1,8 @@
 package com.example.conciflex.controller;
 
-import com.example.conciflex.model.classes.Client;
-import com.example.conciflex.model.classes.Configuration;
-import com.example.conciflex.model.classes.Log;
-import com.example.conciflex.model.classes.Payment;
-import com.example.conciflex.model.jdbc.JDBCClientDAO;
-import com.example.conciflex.model.jdbc.JDBCConfigurationDAO;
-import com.example.conciflex.model.jdbc.JDBCLogDAO;
-import com.example.conciflex.model.jdbc.JDBCPaymentDAO;
+import com.example.conciflex.MainApplication;
+import com.example.conciflex.model.classes.*;
+import com.example.conciflex.model.jdbc.*;
 import com.example.conciflex.util.TimeSpinner;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -15,6 +10,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
@@ -29,6 +25,9 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class MainController {
+    @FXML
+    public Parent mainWindow;
+
     @FXML
     public Label lbMensagem;
 
@@ -64,11 +63,15 @@ public class MainController {
     private String errorType = "Erro";
 
     public void initialize() {
+        mainWindow.getStylesheets().add(MainApplication.class.getResource("css/main.css").toExternalForm());
+
         try {
             selectedClient = JDBCClientDAO.getInstance().search(JDBCConfigurationDAO.getInstance().getIdFixedClient());
         } catch (Exception e) {
             writeMessageLog("#1 " + e, errorType);
         }
+
+        System.out.println(selectedClient.getId());
 
         lbMensagem.setVisible(false);
         spRetornarDias.getValueFactory().setValue(1);
@@ -76,9 +79,21 @@ public class MainController {
         dpDataInicial.setValue(LocalDate.now());
         dpDataFinal.setValue(LocalDate.now());
 
-        this.loadConfig();
-        this.getConfiguration();
-        this.processData();
+        DBConnection dbConnection = null;
+
+        try {
+            dbConnection = JDBCDBConnectionDAO.getInstance().search(selectedClient.getId());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if(dbConnection == null) {
+            showMessage("Por favor, cadastre os parâmetros de conexão do cliente!");
+        } else {
+            this.loadConfig();
+            this.getConfiguration();
+            this.processData();
+        }
     }
 
     @FXML
@@ -143,10 +158,12 @@ public class MainController {
 
             String query = QueryController.getSearchQuery();
 
-            writeMessageLog("Buscando os dados do cliente " + selectedClient.getName() + "...", successType);
+            String message_search = "Buscando os dados do cliente " + selectedClient.getName() + " do dia "+startDate+" ao dia "+endDate+"...";
+
+            writeMessageLog(message_search, successType);
 
             Platform.runLater(() -> {
-                showMessage("Buscando os dados do cliente " + selectedClient.getName() + "...");
+                showMessage(message_search);
             });
 
             ObservableList<Payment> paymentObservableList = FXCollections.observableArrayList();
@@ -169,11 +186,13 @@ public class MainController {
                 writeMessageLog("#5 " + e, errorType);
             }
 
-            writeMessageLog("Inserindo os dados do cliente " + selectedClient.getName() + "...", successType);
-
+            String message_insert = "Inserindo os dados do cliente " + selectedClient.getName() + " do dia "+startDate+" ao dia "+endDate+"...";
+;
             Platform.runLater(() -> {
-                showMessage("Inserindo os dados do cliente " + selectedClient.getName() + "...");
+                showMessage(message_insert);
             });
+
+            writeMessageLog(message_insert, successType);
 
             for (Payment payment:paymentObservableList) {
                 try {

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.Button?>
+
+<BorderPane fx:id="mainWindow" prefHeight="450.0" prefWidth="800.0"
+            style="-fx-background-color: white;"
+            xmlns="http://javafx.com/javafx/8.0.60"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.conciflex.controller.LoginController">
+    <center>
+        <VBox prefWidth="800" alignment="CENTER">
+            <HBox alignment="CENTER">
+                <VBox alignment="CENTER">
+                    <ImageView>
+                        <image>
+                            <Image url="@../images/login-logo.png"/>
+                        </image>
+                    </ImageView>
+                </VBox>
+                <VBox.margin>
+                    <Insets>
+                        <bottom>50</bottom>
+                    </Insets>
+                </VBox.margin>
+            </HBox>
+
+            <HBox alignment="CENTER">
+                <VBox alignment="CENTER_LEFT" prefWidth="65">
+                    <ImageView>
+                        <image>
+                            <Image url="@../images/config-cliente-title.png"/>
+                        </image>
+                    </ImageView>
+                </VBox>
+                <VBox alignment="CENTER_RIGHT">
+                    <HBox.margin>
+                        <Insets>
+                            <left>15</left>
+                        </Insets>
+                    </HBox.margin>
+                    <ComboBox fx:id="cbClients" prefHeight="30.0" prefWidth="235.0" />
+                </VBox>
+                <VBox.margin>
+                    <Insets>
+                        <bottom>15</bottom>
+                    </Insets>
+                </VBox.margin>
+            </HBox>
+
+            <HBox alignment="CENTER">
+                <VBox alignment="CENTER_LEFT" prefWidth="65">
+                    <ImageView>
+                        <image>
+                            <Image url="@../images/config-senha-title.png"/>
+                        </image>
+                    </ImageView>
+                </VBox>
+                <VBox alignment="CENTER_RIGHT">
+                    <HBox.margin>
+                        <Insets>
+                            <left>15</left>
+                        </Insets>
+                    </HBox.margin>
+                    <PasswordField fx:id="pfPassword" prefHeight="30" prefWidth="235"/>
+                </VBox>
+                <VBox.margin>
+                    <Insets>
+                        <bottom>25</bottom>
+                    </Insets>
+                </VBox.margin>
+            </HBox>
+
+            <HBox alignment="CENTER">
+                <VBox alignment="CENTER_RIGHT" prefWidth="315">
+                    <Button prefHeight="33.0" prefWidth="82.0" textAlignment="CENTER" fx:id="button02" onAction="#login">
+                        <graphic>
+                            <ImageView>
+                                <Image url="@../images/button-title-entrar.png"/>
+                            </ImageView>
+                        </graphic>
+                    </Button>
+                </VBox>
+            </HBox>
+
+        </VBox>
+    </center>
+</BorderPane>

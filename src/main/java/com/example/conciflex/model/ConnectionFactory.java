@@ -14,15 +14,23 @@ public class ConnectionFactory {
     private static String USERNAME = "admin";
     private static String PASSWORD = "Conc!flex5";
 
-    private static String CONNECTION_STR_POST = "jdbc:postgresql:"+
+    // Supermercado Maresia
+
+    /*private static String CONNECTION_STR_POST = "jdbc:postgresql:"+
             "//192.168.1.200:5432/erp";
     private static String USERNAME_POST = "postgres";
-    private static String PASSWORD_POST = "rp@1064";
+    private static String PASSWORD_POST = "rp@1064";*/
 
     /*private static String CONNECTION_STR_POST = "jdbc:postgresql:"+
             "//10.0.0.200:5432/erp";
     private static String USERNAME_POST = "postgres";
     private static String PASSWORD_POST = "z@nde001";*/
+
+    // Dom Atacadista
+    private static String CONNECTION_STR_POST = "jdbc:postgresql:"+
+            "//10.10.203.100:5432/erp";
+    private static String USERNAME_POST = "conciflex";
+    private static String PASSWORD_POST = "@C0nc1fl3x.";
 
     private static int MAX_CONNECTIONS=15;
 

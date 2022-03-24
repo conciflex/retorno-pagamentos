@@ -113,7 +113,7 @@
     -fx-background-color: transparent;
 }
 
-#dpDataInicial, #dpDataFinal, #cbClients, #spRetornarDias {
+#dpDataInicial, #dpDataFinal, #cbClients, #spRetornarDias, #pfPassword {
     -fx-background-color: rgb(45, 82, 117, 0.20);
 }
 
