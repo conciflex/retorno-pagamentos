@@ -105,15 +105,17 @@
     -fx-background-radius: 2 0 0 2, 1 0 0 1, 0;
 }
 
-#tfHorarioRetornoVendas .increment-arrow-button, #spRetornarDias .increment-arrow-button {
+#tfHorarioRetornoVendas .increment-arrow-button, #spRetornarDias .increment-arrow-button
+, #spInicioDias .increment-arrow-button {
     -fx-background-color: transparent;
 }
 
-#tfHorarioRetornoVendas .decrement-arrow-button, #spRetornarDias .decrement-arrow-button {
+#tfHorarioRetornoVendas .decrement-arrow-button, #spRetornarDias .decrement-arrow-button,
+    #spInicioDias .decrement-arrow-button {
     -fx-background-color: transparent;
 }
 
-#dpDataInicial, #dpDataFinal, #cbClients, #spRetornarDias, #pfPassword {
+#dpDataInicial, #dpDataFinal, #cbClients, #spRetornarDias, #pfPassword, #spInicioDias {
     -fx-background-color: rgb(45, 82, 117, 0.20);
 }
 
@@ -126,6 +128,12 @@
 }
 
 #spRetornarDias > .text-field {
+    -fx-background-color: transparent;
+    -fx-background-insets: 1 0 1 1;
+    -fx-background-radius: 2 0 0 2;
+}
+
+#spInicioDias > .text-field {
     -fx-background-color: transparent;
     -fx-background-insets: 1 0 1 1;
     -fx-background-radius: 2 0 0 2;

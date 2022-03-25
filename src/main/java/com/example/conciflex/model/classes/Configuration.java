@@ -6,6 +6,7 @@ public class Configuration {
     public int clientId;
     public String clientName;
     public int returnDays;
+    public int initDays;
 
     public int getId() {
         return id;
@@ -31,6 +32,14 @@ public class Configuration {
         this.clientId = clientId;
     }
 
+    public String getClientName() {
+        return clientName;
+    }
+
+    public void setClientName(String clientName) {
+        this.clientName = clientName;
+    }
+
     public int getReturnDays() {
         return returnDays;
     }
@@ -39,11 +48,11 @@ public class Configuration {
         this.returnDays = returnDays;
     }
 
-    public String getClientName() {
-        return clientName;
+    public int getInitDays() {
+        return initDays;
     }
 
-    public void setClientName(String clientName) {
-        this.clientName = clientName;
+    public void setInitDays(int initDays) {
+        this.initDays = initDays;
     }
 }

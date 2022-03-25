@@ -1,5 +1,9 @@
 package com.example.conciflex.model;
 
+import com.example.conciflex.model.classes.DBConnection;
+import com.example.conciflex.model.jdbc.JDBCConfigurationDAO;
+import com.example.conciflex.model.jdbc.JDBCDBConnectionDAO;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -13,24 +17,6 @@ public class ConnectionFactory {
             "&useLegacyDatetimeCode=false&serverTimezone=UTC";
     private static String USERNAME = "admin";
     private static String PASSWORD = "Conc!flex5";
-
-    // Supermercado Maresia
-
-    /*private static String CONNECTION_STR_POST = "jdbc:postgresql:"+
-            "//192.168.1.200:5432/erp";
-    private static String USERNAME_POST = "postgres";
-    private static String PASSWORD_POST = "rp@1064";*/
-
-    /*private static String CONNECTION_STR_POST = "jdbc:postgresql:"+
-            "//10.0.0.200:5432/erp";
-    private static String USERNAME_POST = "postgres";
-    private static String PASSWORD_POST = "z@nde001";*/
-
-    // Dom Atacadista
-    private static String CONNECTION_STR_POST = "jdbc:postgresql:"+
-            "//10.10.203.100:5432/erp";
-    private static String USERNAME_POST = "conciflex";
-    private static String PASSWORD_POST = "@C0nc1fl3x.";
 
     private static int MAX_CONNECTIONS=15;
 
@@ -55,12 +41,30 @@ public class ConnectionFactory {
     }
 
     public static Connection getConnectionRPInfo() throws SQLException {
-        for(int i=0;i<pool.length;i++){
-            if((pool[i]==null) || (pool[i].isClosed())){
-                pool[i] = DriverManager.getConnection(CONNECTION_STR_POST, USERNAME_POST, PASSWORD_POST);
-                return pool[i];
+
+        DBConnection dbConnection = null;
+
+        try {
+            dbConnection = JDBCDBConnectionDAO.getInstance().search(JDBCConfigurationDAO.getInstance().getIdFixedClient());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if(dbConnection != null) {
+            String CONNECTION_STR_POST =
+                    "jdbc:postgresql://" +dbConnection.getIp()+":"+dbConnection.getPort() + "/"+dbConnection.getInstance();
+
+            String USERNAME_POST = dbConnection.getUser();
+            String PASSWORD_POST = dbConnection.getPassword();
+
+            for(int i=0;i<pool.length;i++){
+                if((pool[i]==null) || (pool[i].isClosed())){
+                    pool[i] = DriverManager.getConnection(CONNECTION_STR_POST, USERNAME_POST, PASSWORD_POST);
+                    return pool[i];
+                }
             }
         }
+
         throw new SQLException("Muitas conexões abertas!");
     }
 }

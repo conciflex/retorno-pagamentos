@@ -31,7 +31,7 @@ public class JDBCDBConnectionDAO implements DBConnectionDAO {
 
         ResultSet resultSet = preparedStatement.executeQuery();
 
-        DBConnection dbConnection = null;
+        DBConnection dbConnection = new DBConnection();
 
         if(resultSet.next()) {
             String ip = resultSet.getString("IP");

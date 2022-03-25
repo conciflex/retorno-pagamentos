@@ -96,7 +96,7 @@
                                 </columnResizePolicy>
                                 <columns>
                                     <TableColumn fx:id="tcHour" text="Horário" style="-fx-alignment: CENTER;"/>
-                                    <TableColumn fx:id="tcRetorno" text="Retorno (dias)" style="-fx-alignment: CENTER;"/>
+                                    <TableColumn fx:id="tcRetorno" text="Retorno" style="-fx-alignment: CENTER;"/>
                                     <TableColumn fx:id="tcOption" text="Opções"/>
                                 </columns>
                             </TableView>
@@ -155,7 +155,6 @@
                 </VBox.margin>
             </HBox>
 
-
             <HBox alignment="CENTER">
                 <VBox alignment="CENTER_LEFT" prefWidth="65">
                     <ImageView>
@@ -177,7 +176,6 @@
                         </Insets>
                     </HBox.margin>
                 </VBox>
-
                 <VBox alignment="CENTER_LEFT" prefWidth="24">
                     <ImageView>
                         <image>
@@ -185,7 +183,44 @@
                         </image>
                     </ImageView>
                 </VBox>
+                <VBox.margin>
+                    <Insets>
+                        <bottom>15</bottom>
+                    </Insets>
+                </VBox.margin>
             </HBox>
+
+            <HBox alignment="CENTER">
+                <VBox alignment="CENTER_LEFT" prefWidth="65">
+                    <ImageView>
+                        <image>
+                            <Image url="@../images/config-apartir-title.png"/>
+                        </image>
+                    </ImageView>
+                    <HBox.margin>
+                        <Insets>
+                            <right>15</right>
+                        </Insets>
+                    </HBox.margin>
+                </VBox>
+                <VBox alignment="CENTER_LEFT">
+                    <Spinner min="0" max="100" prefWidth="140" prefHeight="30" fx:id="spInicioDias" />
+                    <HBox.margin>
+                        <Insets>
+                            <right>15</right>
+                        </Insets>
+                    </HBox.margin>
+                </VBox>
+
+                <VBox alignment="CENTER_LEFT" prefWidth="79">
+                    <ImageView>
+                        <image>
+                            <Image url="@../images/config-dias-atras-title.png"/>
+                        </image>
+                    </ImageView>
+                </VBox>
+            </HBox>
+
         </VBox>
     </right>
 

@@ -8,6 +8,7 @@ import javafx.collections.ObservableList;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLOutput;
 
 public class JDBCConfigurationDAO implements ConfigurationDAO {
     private static JDBCConfigurationDAO instance;
@@ -33,12 +34,14 @@ public class JDBCConfigurationDAO implements ConfigurationDAO {
         int clientId = resultSet.getInt("COD_CLIENTE");
         int returnDays = resultSet.getInt("RETORNO_DIAS");
         String name = resultSet.getString("NOME");
+        int initDays = resultSet.getInt("DIAS_INICIO");
 
         configuration.setId(id);
         configuration.setTime(time);
         configuration.setClientId(clientId);
         configuration.setReturnDays(returnDays);
         configuration.setClientName(name);
+        configuration.setInitDays(initDays);
 
         return configuration;
     }
@@ -47,12 +50,14 @@ public class JDBCConfigurationDAO implements ConfigurationDAO {
     public void insert(Configuration configuration) throws Exception {
         Connection connection = ConnectionFactory.getConnectionConciflex();
 
-        String sql = "insert into retorno_pagamento_rp_info(HORARIO, COD_CLIENTE, RETORNO_DIAS) values(?, ?, ?)";
+        String sql = "insert into retorno_pagamento_rp_info(HORARIO, COD_CLIENTE, RETORNO_DIAS, DIAS_INICIO) " +
+                "values(?, ?, ?, ?)";
 
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
         preparedStatement.setString(1, configuration.getTime());
         preparedStatement.setInt(2, configuration.getClientId());
         preparedStatement.setInt(3, configuration.getReturnDays());
+        preparedStatement.setInt(4, configuration.getInitDays());
         preparedStatement.execute();
 
         preparedStatement.close();
@@ -61,29 +66,33 @@ public class JDBCConfigurationDAO implements ConfigurationDAO {
 
     @Override
     public ObservableList<Configuration> list() throws Exception {
-        configuracaoObservableList.clear();
+        ObservableList<Configuration> configurationObservableList = FXCollections.observableArrayList();
+
         Connection connection = ConnectionFactory.getConnectionConciflex();
 
         String sql = "select retorno_pagamento_rp_info.CODIGO, " +
                 "retorno_pagamento_rp_info.HORARIO, " +
                 "retorno_pagamento_rp_info.COD_CLIENTE, " +
                 "retorno_pagamento_rp_info.RETORNO_DIAS, " +
+                "retorno_pagamento_rp_info.DIAS_INICIO, " +
                 "clientes.NOME from retorno_pagamento_rp_info " +
-                "LEFT JOIN clientes ON clientes.CODIGO = retorno_pagamento_rp_info.COD_CLIENTE";
+                "LEFT JOIN clientes ON clientes.CODIGO = retorno_pagamento_rp_info.COD_CLIENTE " +
+                "WHERE retorno_pagamento_rp_info.COD_CLIENTE = ?";
 
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        preparedStatement.setInt(1, JDBCConfigurationDAO.getInstance().idFixedClient);
         ResultSet resultSet = preparedStatement.executeQuery();
 
         while (resultSet.next()){
             Configuration configuration = loadConfiguration(resultSet);
-            configuracaoObservableList.add(configuration);
+            configurationObservableList.add(configuration);
         }
 
         resultSet.close();
         preparedStatement.close();
         connection.close();
 
-        return configuracaoObservableList;
+        return configurationObservableList;
     }
 
     @Override
@@ -123,6 +132,31 @@ public class JDBCConfigurationDAO implements ConfigurationDAO {
         connection.close();
 
         return returnDaysCount;
+    }
+
+    @Override
+    public int searchInitDays() throws Exception {
+        Connection connection = ConnectionFactory.getConnectionConciflex();
+
+        PreparedStatement preparedStatement;
+        String sql = "SELECT DIAS_INICIO FROM retorno_pagamento_rp_info WHERE COD_CLIENTE = ?";
+        preparedStatement = connection.prepareStatement(sql);
+
+        preparedStatement.setInt(1, idFixedClient);
+
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        int initDays = 0;
+
+        if(resultSet.next()) {
+            initDays = resultSet.getInt("DIAS_INICIO");
+        }
+
+        resultSet.close();
+        preparedStatement.close();
+        connection.close();
+
+        return initDays;
     }
 
     @Override

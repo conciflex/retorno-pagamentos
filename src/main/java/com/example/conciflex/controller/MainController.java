@@ -55,8 +55,13 @@ public class MainController {
     @FXML
     public TableColumn tcOption;
 
+    @FXML
+    public Spinner spInicioDias;
+
     private ObservableList<Configuration> configurationObservableList = FXCollections.observableArrayList();
+    private ObservableList<Configuration> configurationCopyList = FXCollections.observableArrayList();
     private ObservableList<java.sql.Date> returnDaysObservableList = FXCollections.observableArrayList();
+
     private static Client selectedClient;
     private static int paymentsReturnSize;
     private String successType = "Sucesso";
@@ -71,15 +76,13 @@ public class MainController {
             writeMessageLog("#1 " + e, errorType);
         }
 
-        System.out.println(selectedClient.getId());
-
         lbMensagem.setVisible(false);
-        spRetornarDias.getValueFactory().setValue(1);
 
+        spRetornarDias.getValueFactory().setValue(0);
         dpDataInicial.setValue(LocalDate.now());
         dpDataFinal.setValue(LocalDate.now());
 
-        DBConnection dbConnection = null;
+        DBConnection dbConnection = new DBConnection();
 
         try {
             dbConnection = JDBCDBConnectionDAO.getInstance().search(selectedClient.getId());
@@ -87,7 +90,7 @@ public class MainController {
             e.printStackTrace();
         }
 
-        if(dbConnection == null) {
+        if(dbConnection.getIp() == null) {
             showMessage("Por favor, cadastre os parâmetros de conexão do cliente!");
         } else {
             this.loadConfig();
@@ -101,6 +104,7 @@ public class MainController {
         Time time = null;
         String timeString = String.valueOf(tfTime.getValue());
         int days = (int) spRetornarDias.getValue();
+        int initDays = (int) spInicioDias.getValue();
         boolean verificar = true;
 
         if(timeString == null) {
@@ -138,6 +142,7 @@ public class MainController {
             configuration.setTime(time.toString());
             configuration.setClientId(JDBCConfigurationDAO.getInstance().getIdFixedClient());
             configuration.setReturnDays(days);
+            configuration.setInitDays(initDays);
 
             try {
                 JDBCConfigurationDAO.getInstance().insert(configuration);
@@ -162,9 +167,7 @@ public class MainController {
 
             writeMessageLog(message_search, successType);
 
-            Platform.runLater(() -> {
-                showMessage(message_search);
-            });
+            Platform.runLater(() -> showMessage(message_search));
 
             ObservableList<Payment> paymentObservableList = FXCollections.observableArrayList();
 
@@ -176,9 +179,7 @@ public class MainController {
 
             writeMessageLog("Limpando a tabela cflexarquivomovimento", successType);
 
-            Platform.runLater(() -> {
-                showMessage("Limpando a tabela cflexarquivomovimento");
-            });
+            Platform.runLater(() -> showMessage("Limpando a tabela cflexarquivomovimento"));
 
             try {
                 JDBCPaymentDAO.getInstance().clearTable();
@@ -188,9 +189,7 @@ public class MainController {
 
             String message_insert = "Inserindo os dados do cliente " + selectedClient.getName() + " do dia "+startDate+" ao dia "+endDate+"...";
 ;
-            Platform.runLater(() -> {
-                showMessage(message_insert);
-            });
+            Platform.runLater(() -> showMessage(message_insert));
 
             writeMessageLog(message_insert, successType);
 
@@ -238,12 +237,15 @@ public class MainController {
                     if (processDateTime != null && processDateTime.equals(nowDateTime)) {
                         returnDaysObservableList.clear();
 
-                        java.sql.Date todayDateSQL = java.sql.Date.valueOf(LocalDate.now());
+                        int initDays = configuration.getInitDays();
+
+                        java.sql.Date todayDateSQL = java.sql.Date.valueOf(LocalDate.now().minusDays(initDays));
+
                         returnDaysObservableList.add(todayDateSQL);
 
                         if(configuration.getReturnDays() != 0) {
                             for (int i = 1; i <= configuration.getReturnDays(); i++) {
-                                java.sql.Date date = java.sql.Date.valueOf(LocalDate.now().minusDays(i));
+                                java.sql.Date date = java.sql.Date.valueOf(LocalDate.now().minusDays(initDays).minusDays(i));
                                 returnDaysObservableList.add(date);
                             }
                         }
@@ -336,21 +338,20 @@ public class MainController {
     }
 
     public void loadConfig() {
-        ObservableList<Configuration> observableList = FXCollections.observableArrayList();
+        ObservableList<Configuration> configList = FXCollections.observableArrayList();
 
         tcHour.setCellValueFactory(new PropertyValueFactory<>("time"));
         tcRetorno.setCellValueFactory(new PropertyValueFactory<>("returnDays"));
 
-
         try {
-            observableList.addAll(JDBCConfigurationDAO.getInstance().list());
+            configList = JDBCConfigurationDAO.getInstance().list();
         } catch (Exception e) {
-            writeMessageLog("#14 " + e, errorType);
+            e.printStackTrace();
         }
 
         addButtonTableConfiguration();
 
-        tvConfiguration.setItems(observableList);
+        tvConfiguration.setItems(configList);
     }
 
     public void addButtonTableConfiguration() {
@@ -407,7 +408,7 @@ public class MainController {
         configurationObservableList.clear();
 
         try {
-            configurationObservableList.addAll(JDBCConfigurationDAO.getInstance().list());
+            configurationObservableList = JDBCConfigurationDAO.getInstance().list();
         } catch (Exception e) {
             writeMessageLog("#16 " + e, errorType);
         }

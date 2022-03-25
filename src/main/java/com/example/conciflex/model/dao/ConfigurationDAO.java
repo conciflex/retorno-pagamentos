@@ -8,5 +8,6 @@ public interface ConfigurationDAO {
     ObservableList<Configuration> list() throws Exception;
     void delete(Configuration configuration) throws Exception;
     int searchReturnDays() throws Exception;
+    int searchInitDays() throws Exception;
     ObservableList<String> listProcessingTimes() throws Exception;
 }
