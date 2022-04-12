@@ -116,6 +116,8 @@ public class JDBCPaymentDAO implements PaymentDAO {
         preparedStatement.setDate(3, endDate);
         ResultSet resultSet = preparedStatement.executeQuery();
 
+        System.out.println(preparedStatement);
+
         while (resultSet.next()){
             Payment payment = loadPayment(resultSet);
             paymentObservableList.add(payment);

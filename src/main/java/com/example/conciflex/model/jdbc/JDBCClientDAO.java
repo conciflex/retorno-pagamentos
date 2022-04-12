@@ -81,4 +81,27 @@ public class JDBCClientDAO implements ClientDAO {
 
         return client;
     }
+
+    @Override
+    public ObservableList<Client> listWithoutQuery() throws Exception {
+        clientObservableList.clear();
+
+        Connection connection = ConnectionFactory.getConnectionConciflex();
+
+        PreparedStatement preparedStatement;
+        String sql = "SELECT * FROM clientes WHERE clientes.COD_ERP IN (5, 6, 7) AND CODIGO NOT IN (692, 668, 696)";
+        preparedStatement = connection.prepareStatement(sql);
+
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        while(resultSet.next()) {
+            clientObservableList.add(loadClient(resultSet));
+        }
+
+        resultSet.close();
+        preparedStatement.close();
+        connection.close();
+
+        return clientObservableList;
+    }
 }

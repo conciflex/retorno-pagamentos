@@ -214,6 +214,26 @@ public class MainController {
         threadSendPaymentReturn.start();
     }
 
+    public void generateQueryClient() {
+        ObservableList<Client> clientObservableList = FXCollections.observableArrayList();
+
+        try {
+            clientObservableList = JDBCClientDAO.getInstance().listWithoutQuery();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        for (Client client: clientObservableList) {
+            System.out.println("Criando query para cliente: " + client.getName());
+
+            try {
+                JDBCQueryDAO.getInstance().create(client);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public void processData() {
         Thread threadSendPaymentReturn = new Thread(() -> {
             while(true) {

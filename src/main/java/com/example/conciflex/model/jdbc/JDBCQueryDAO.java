@@ -1,11 +1,13 @@
 package com.example.conciflex.model.jdbc;
 
 import com.example.conciflex.model.ConnectionFactory;
+import com.example.conciflex.model.classes.Client;
 import com.example.conciflex.model.classes.Query;
 import com.example.conciflex.model.dao.QueryDAO;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import java.net.InetAddress;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -53,5 +55,21 @@ public class JDBCQueryDAO implements QueryDAO {
         connection.close();
 
         return queryObservableList;
+    }
+
+    @Override
+    public void create(Client client) throws Exception {
+        Connection connection = ConnectionFactory.getConnectionConciflex();
+
+        String sql = "INSERT INTO query_rp_info(CAMPO, QUERY, COD_CLIENTE) SELECT CAMPO, QUERY, "+client.getId()+" AS COD_CLIENTE FROM query_rp_info WHERE COD_CLIENTE = ?";
+
+        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+
+        preparedStatement.setInt(1, 692);
+
+        preparedStatement.execute();
+
+        preparedStatement.close();
+        connection.close();
     }
 }
