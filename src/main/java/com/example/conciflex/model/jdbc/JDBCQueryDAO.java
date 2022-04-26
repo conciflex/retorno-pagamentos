@@ -65,7 +65,7 @@ public class JDBCQueryDAO implements QueryDAO {
 
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-        preparedStatement.setInt(1, 692);
+        preparedStatement.setInt(1, client.getId());
 
         preparedStatement.execute();
 

@@ -3,7 +3,6 @@ package com.example.conciflex.model;
 import com.example.conciflex.model.classes.DBConnection;
 import com.example.conciflex.model.jdbc.JDBCConfigurationDAO;
 import com.example.conciflex.model.jdbc.JDBCDBConnectionDAO;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -41,6 +40,11 @@ public class ConnectionFactory {
     }
 
     public static Connection getConnectionRPInfo() throws SQLException {
+        try {
+            Class.forName("org.postgresql.Driver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
 
         DBConnection dbConnection = null;
 

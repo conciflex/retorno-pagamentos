@@ -5,7 +5,6 @@ import com.example.conciflex.model.classes.Client;
 import com.example.conciflex.model.dao.ClientDAO;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -89,7 +88,7 @@ public class JDBCClientDAO implements ClientDAO {
         Connection connection = ConnectionFactory.getConnectionConciflex();
 
         PreparedStatement preparedStatement;
-        String sql = "SELECT * FROM clientes WHERE clientes.COD_ERP IN (5, 6, 7) AND CODIGO NOT IN (692, 668, 696)";
+        String sql = "SELECT * FROM clientes WHERE clientes.COD_ERP IN (5, 6, 7)";
         preparedStatement = connection.prepareStatement(sql);
 
         ResultSet resultSet = preparedStatement.executeQuery();

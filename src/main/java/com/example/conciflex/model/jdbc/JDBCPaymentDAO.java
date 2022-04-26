@@ -116,8 +116,6 @@ public class JDBCPaymentDAO implements PaymentDAO {
         preparedStatement.setDate(3, endDate);
         ResultSet resultSet = preparedStatement.executeQuery();
 
-        System.out.println(preparedStatement);
-
         while (resultSet.next()){
             Payment payment = loadPayment(resultSet);
             paymentObservableList.add(payment);
@@ -131,69 +129,75 @@ public class JDBCPaymentDAO implements PaymentDAO {
     }
 
     @Override
-    public void create(Payment payment) throws Exception {
-        Connection connection = ConnectionFactory.getConnectionRPInfo();
+    public void create(Payment payment) {
+        try {
+            Connection connection = ConnectionFactory.getConnectionRPInfo();
 
-        String sql = "insert into cflexarquivomovimento(" +
-                "cfam_operacao, cfam_datavenda, cfam_unid_codigo, cfam_pger_conta, cfam_lpgt_codigo, " +
-                "cfam_datapgto, cfam_valorbruto, cfam_valorliquido, cfam_parcela, cfam_nsu, " +
-                "cfam_adqu_codigo, cfam_band_codigo, cfam_band_descricao, cfam_banc_numero, cfam_agen_numero, " +
-                "cfam_ccor_numero, cfam_antecipado, cfam_registrooperacao, cfam_lanc_codigo, cfam_lanc_descricao, " +
-                "cfam_ajus_codigo, cfam_ajus_motivo, cfam_estabelecimento_conciflex, cfam_perctaxaantecipacao, cfam_valortaxaantecipacao, " +
-                "cfam_statusconc, cfam_statusprocessamento, cfam_dataprocessamento, cfam_horaprocessamento, cfam_transacaobaixa, " +
-                "cfam_idconciflex, cfam_dataincconciflex, cfam_horaincconciflex, cfam_taxaadm, cfam_versao" +
-                ") values(" +
-                "?, ?, ?, ?, ?, " +
-                "?, ?, ?, ?, ?, " +
-                "?, ?, ?, ?, ?, " +
-                "?, ?, ?, ?, ?, " +
-                "?, ?, ?, ?, ?, " +
-                "?, ?, ?, ?, ?, " +
-                "?, ?, ?, ?, ?" +
-                ")";
+            String sql = "insert into cflexarquivomovimento(" +
+                    "cfam_operacao, cfam_datavenda, cfam_unid_codigo, cfam_pger_conta, cfam_lpgt_codigo, " +
+                    "cfam_datapgto, cfam_valorbruto, cfam_valorliquido, cfam_parcela, cfam_nsu, " +
+                    "cfam_adqu_codigo, cfam_band_codigo, cfam_band_descricao, cfam_banc_numero, cfam_agen_numero, " +
+                    "cfam_ccor_numero, cfam_antecipado, cfam_registrooperacao, cfam_lanc_codigo, cfam_lanc_descricao, " +
+                    "cfam_ajus_codigo, cfam_ajus_motivo, cfam_estabelecimento_conciflex, cfam_perctaxaantecipacao, cfam_valortaxaantecipacao, " +
+                    "cfam_statusconc, cfam_statusprocessamento, cfam_dataprocessamento, cfam_horaprocessamento, cfam_transacaobaixa, " +
+                    "cfam_idconciflex, cfam_dataincconciflex, cfam_horaincconciflex, cfam_taxaadm, cfam_versao" +
+                    ") values(" +
+                    "?, ?, ?, ?, ?, " +
+                    "?, ?, ?, ?, ?, " +
+                    "?, ?, ?, ?, ?, " +
+                    "?, ?, ?, ?, ?, " +
+                    "?, ?, ?, ?, ?, " +
+                    "?, ?, ?, ?, ?, " +
+                    "?, ?, ?, ?, ?" +
+                    ")";
 
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-        preparedStatement.setString(1, payment.getCfam_operacao());
-        preparedStatement.setDate(2, payment.getCfam_datavenda());
-        preparedStatement.setString(3, payment.getCfam_unid_codigo());
-        preparedStatement.setInt(4, payment.getCfam_pger_conta());
-        preparedStatement.setInt(5, payment.getCfam_lpgt_codigo());
-        preparedStatement.setDate(6, payment.getCfam_datapgto());
-        preparedStatement.setDouble(7, payment.getCfam_valorbruto());
-        preparedStatement.setDouble(8, payment.getCfam_valorliquido());
-        preparedStatement.setInt(9, payment.getCfam_parcela());
-        preparedStatement.setString(10, payment.getCfam_nsu());
-        preparedStatement.setInt(11, payment.getCfam_adqu_codigo());
-        preparedStatement.setInt(12, payment.getCfam_band_codigo());
-        preparedStatement.setString(13, payment.getCfam_band_descricao());
-        preparedStatement.setInt(14, payment.getCfam_banc_numero());
-        preparedStatement.setInt(15, payment.getCfam_agen_numero());
-        preparedStatement.setString(16, payment.getCfam_ccor_numero());
-        preparedStatement.setString(17, payment.getCfam_antecipado());
-        preparedStatement.setString(18, payment.getCfam_registrooperacao());
-        preparedStatement.setInt(19, payment.getCfam_lanc_codigo());
-        preparedStatement.setString(20, payment.getCfam_lanc_descricao());
-        preparedStatement.setString(21, payment.getCfam_ajus_codigo());
-        preparedStatement.setString(22, payment.getCfam_ajus_motivo());
-        preparedStatement.setString(23, payment.getCfam_estabelecimento_conciflex());
-        preparedStatement.setDouble(24, payment.getCfam_perctaxaantecipacao());
-        preparedStatement.setDouble(25, payment.getCfam_valortaxaantecipacao());
-        preparedStatement.setString(26, payment.getCfam_statusconc());
-        preparedStatement.setString(27, payment.getCfam_statusprocessamento());
-        preparedStatement.setDate(28, payment.getCfam_dataprocessamento());
-        preparedStatement.setString(29, payment.getCfam_horaprocessamento());
-        preparedStatement.setString(30, payment.getCfam_transacaobaixa());
-        preparedStatement.setInt(31, payment.getCfam_idconciflex());
-        preparedStatement.setDate(32, payment.getCfam_dataincconciflex());
-        preparedStatement.setTime(33, payment.getCfam_horaincconciflex());
-        preparedStatement.setFloat(34, payment.getCfam_taxaadm());
-        preparedStatement.setString(35, payment.getCfam_versao());
+            preparedStatement.setString(1, payment.getCfam_operacao());
+            preparedStatement.setDate(2, payment.getCfam_datavenda());
+            preparedStatement.setString(3, payment.getCfam_unid_codigo());
+            preparedStatement.setInt(4, payment.getCfam_pger_conta());
+            preparedStatement.setInt(5, payment.getCfam_lpgt_codigo());
+            preparedStatement.setDate(6, payment.getCfam_datapgto());
+            preparedStatement.setDouble(7, payment.getCfam_valorbruto());
+            preparedStatement.setDouble(8, payment.getCfam_valorliquido());
+            preparedStatement.setInt(9, payment.getCfam_parcela());
+            preparedStatement.setString(10, payment.getCfam_nsu());
+            preparedStatement.setInt(11, payment.getCfam_adqu_codigo());
+            preparedStatement.setInt(12, payment.getCfam_band_codigo());
+            preparedStatement.setString(13, payment.getCfam_band_descricao());
+            preparedStatement.setInt(14, payment.getCfam_banc_numero());
+            preparedStatement.setInt(15, payment.getCfam_agen_numero());
+            preparedStatement.setString(16, payment.getCfam_ccor_numero());
+            preparedStatement.setString(17, payment.getCfam_antecipado());
+            preparedStatement.setString(18, payment.getCfam_registrooperacao());
+            preparedStatement.setInt(19, payment.getCfam_lanc_codigo());
+            preparedStatement.setString(20, payment.getCfam_lanc_descricao());
+            preparedStatement.setString(21, payment.getCfam_ajus_codigo());
+            preparedStatement.setString(22, payment.getCfam_ajus_motivo());
+            preparedStatement.setString(23, payment.getCfam_estabelecimento_conciflex());
+            preparedStatement.setDouble(24, payment.getCfam_perctaxaantecipacao());
+            preparedStatement.setDouble(25, payment.getCfam_valortaxaantecipacao());
+            preparedStatement.setString(26, payment.getCfam_statusconc());
+            preparedStatement.setString(27, payment.getCfam_statusprocessamento());
+            preparedStatement.setDate(28, payment.getCfam_dataprocessamento());
+            preparedStatement.setString(29, payment.getCfam_horaprocessamento());
+            preparedStatement.setString(30, payment.getCfam_transacaobaixa());
+            preparedStatement.setInt(31, payment.getCfam_idconciflex());
+            preparedStatement.setDate(32, payment.getCfam_dataincconciflex());
+            preparedStatement.setTime(33, payment.getCfam_horaincconciflex());
+            preparedStatement.setFloat(34, payment.getCfam_taxaadm());
+            preparedStatement.setString(35, payment.getCfam_versao());
 
-        preparedStatement.execute();
+            preparedStatement.execute();
 
-        preparedStatement.close();
-        connection.close();
+            preparedStatement.close();
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

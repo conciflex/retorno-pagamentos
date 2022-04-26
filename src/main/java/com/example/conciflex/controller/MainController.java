@@ -1,6 +1,7 @@
 package com.example.conciflex.controller;
 
 import com.example.conciflex.MainApplication;
+import com.example.conciflex.model.ConnectionFactory;
 import com.example.conciflex.model.classes.*;
 import com.example.conciflex.model.jdbc.*;
 import com.example.conciflex.util.TimeSpinner;
@@ -15,7 +16,8 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.util.Callback;
-import java.sql.Time;
+
+import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;

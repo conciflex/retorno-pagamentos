@@ -48,6 +48,8 @@ public class LoginController {
         if (inetAddress != null) {
             IPConnection ipConnection = null;
 
+            System.out.println("IP: " + inetAddress.getHostAddress());
+
             try {
                 ipConnection = JDBCIPConnectionDAO.getInstance().search(inetAddress.getHostAddress());
             } catch (Exception e) {
@@ -62,6 +64,8 @@ public class LoginController {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+
+                System.out.println("Cliente: " + client.getName());
 
                 redirect(client.getId());
             }
@@ -91,6 +95,8 @@ public class LoginController {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+
+            System.out.println("Cliente: " + client.getName());
 
             redirect(client.getId());
         }
