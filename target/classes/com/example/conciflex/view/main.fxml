@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.layout.BorderPane?>
-
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.image.ImageView?>
@@ -14,8 +13,10 @@
 <?import com.example.conciflex.util.TimeSpinner?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.ToggleGroup?>
 
-<BorderPane fx:id="mainWindow" prefHeight="450.0" prefWidth="800.0"
+<BorderPane fx:id="mainWindow" prefHeight="550.0" prefWidth="800.0"
             style="-fx-background-color: white;"
             xmlns="http://javafx.com/javafx/8.0.60"
             xmlns:fx="http://javafx.com/fxml/1"
@@ -64,21 +65,9 @@
         <VBox prefWidth="400" alignment="CENTER">
             <HBox alignment="CENTER">
                 <VBox alignment="CENTER">
-                    <HBox alignment="CENTER_LEFT">
-                        <VBox alignment="CENTER">
-                            <ImageView>
-                                <image>
-                                    <Image url="@../images/config-horarios-title.png"/>
-                                </image>
-                            </ImageView>
-                        </VBox>
-                        <VBox alignment="CENTER">
-                            <HBox.margin>
-                                <Insets>
-                                    <left>14</left>
-                                </Insets>
-                            </HBox.margin>
-                            <TimeSpinner fx:id="tfTime" prefHeight="30" prefWidth="235"/>
+                    <HBox alignment="CENTER">
+                        <VBox alignment="CENTER_LEFT" prefWidth="300">
+                            <Label text="Retorno de Pagamentos" fx:id="tituloRetornoTabela" style="-fx-font-weight: bold;"></Label>
                         </VBox>
                         <VBox.margin>
                             <Insets>
@@ -86,9 +75,14 @@
                             </Insets>
                         </VBox.margin>
                     </HBox>
+                </VBox>
+            </HBox>
+
+            <HBox alignment="CENTER">
+                <VBox alignment="CENTER">
                     <HBox alignment="CENTER">
                         <VBox alignment="CENTER" fx:id="tableHour">
-                            <TableView fx:id="tvConfiguration"
+                            <TableView fx:id="tvRetornoPagamento"
                                        prefWidth="300"
                                        prefHeight="150">
                                 <columnResizePolicy>
@@ -103,33 +97,38 @@
                         </VBox>
                     </HBox>
                 </VBox>
-            </HBox>
-        </VBox>
-    </left>
-
-    <right>
-        <VBox prefWidth="400" alignment="CENTER">
-            <HBox alignment="CENTER">
-                <VBox alignment="CENTER_LEFT" prefWidth="65">
-                    <ImageView>
-                        <image>
-                            <Image url="@../images/config-data-inicial-title.png"/>
-                        </image>
-                    </ImageView>
-                </VBox>
-                <VBox alignment="CENTER_RIGHT">
-                    <HBox.margin>
-                        <Insets>
-                            <left>15</left>
-                        </Insets>
-                    </HBox.margin>
-                    <DatePicker fx:id="dpDataInicial" prefHeight="30" prefWidth="235"/>
-                </VBox>
                 <VBox.margin>
                     <Insets>
                         <bottom>15</bottom>
                     </Insets>
                 </VBox.margin>
+            </HBox>
+
+            <HBox alignment="CENTER">
+                <VBox alignment="CENTER">
+                    <HBox alignment="CENTER">
+                        <VBox alignment="CENTER_LEFT" prefWidth="65">
+                            <ImageView>
+                                <image>
+                                    <Image url="@../images/config-data-inicial-title.png"/>
+                                </image>
+                            </ImageView>
+                        </VBox>
+                        <VBox alignment="CENTER_RIGHT">
+                            <HBox.margin>
+                                <Insets>
+                                    <left>15</left>
+                                </Insets>
+                            </HBox.margin>
+                            <DatePicker fx:id="dpDataInicial" prefHeight="30" prefWidth="220"/>
+                        </VBox>
+                        <VBox.margin>
+                            <Insets>
+                                <bottom>15</bottom>
+                            </Insets>
+                        </VBox.margin>
+                    </HBox>
+                </VBox>
             </HBox>
 
             <HBox alignment="CENTER">
@@ -146,42 +145,7 @@
                             <left>15</left>
                         </Insets>
                     </HBox.margin>
-                    <DatePicker fx:id="dpDataFinal" prefHeight="30" prefWidth="235"/>
-                </VBox>
-                <VBox.margin>
-                    <Insets>
-                        <bottom>15</bottom>
-                    </Insets>
-                </VBox.margin>
-            </HBox>
-
-            <HBox alignment="CENTER">
-                <VBox alignment="CENTER_LEFT" prefWidth="65">
-                    <ImageView>
-                        <image>
-                            <Image url="@../images/config-retornar-title.png"/>
-                        </image>
-                    </ImageView>
-                    <HBox.margin>
-                        <Insets>
-                            <right>15</right>
-                        </Insets>
-                    </HBox.margin>
-                </VBox>
-                <VBox alignment="CENTER_LEFT">
-                    <Spinner min="0" max="100" prefWidth="195" prefHeight="30" fx:id="spRetornarDias" />
-                    <HBox.margin>
-                        <Insets>
-                            <right>15</right>
-                        </Insets>
-                    </HBox.margin>
-                </VBox>
-                <VBox alignment="CENTER_LEFT" prefWidth="24">
-                    <ImageView>
-                        <image>
-                            <Image url="@../images/config-dias-title.png"/>
-                        </image>
-                    </ImageView>
+                    <DatePicker fx:id="dpDataFinal" prefHeight="30" prefWidth="220"/>
                 </VBox>
                 <VBox.margin>
                     <Insets>
@@ -204,7 +168,7 @@
                     </HBox.margin>
                 </VBox>
                 <VBox alignment="CENTER_LEFT">
-                    <Spinner min="0" max="100" prefWidth="140" prefHeight="30" fx:id="spInicioDias" />
+                    <Spinner min="0" max="100" prefWidth="130" prefHeight="30" fx:id="spInicioDias" />
                     <HBox.margin>
                         <Insets>
                             <right>15</right>
@@ -220,7 +184,137 @@
                     </ImageView>
                 </VBox>
             </HBox>
+        </VBox>
+    </left>
 
+    <right>
+        <VBox prefWidth="400" alignment="TOP_CENTER">
+            <HBox alignment="CENTER">
+                <VBox.margin>
+                    <Insets>
+                        <top>33</top>
+                    </Insets>
+                </VBox.margin>
+                <VBox alignment="CENTER">
+                    <HBox alignment="CENTER">
+                        <VBox alignment="CENTER_LEFT" prefWidth="300">
+                            <Label text="Baixa de Pagamento" fx:id="tituloRetornoBaixa" style="-fx-font-weight: bold;"></Label>
+                        </VBox>
+                        <VBox.margin>
+                            <Insets>
+                                <bottom>15</bottom>
+                            </Insets>
+                        </VBox.margin>
+                    </HBox>
+                </VBox>
+            </HBox>
+            <HBox alignment="CENTER">
+                <VBox alignment="CENTER">
+                    <HBox alignment="CENTER">
+                        <VBox alignment="CENTER" fx:id="tableBaixaHour">
+                            <TableView fx:id="tvBaixaConfiguration"
+                                       prefWidth="300"
+                                       prefHeight="150">
+                                <columnResizePolicy>
+                                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                </columnResizePolicy>
+                                <columns>
+                                    <TableColumn fx:id="tcBaixaHour" text="Horário" style="-fx-alignment: CENTER;"/>
+                                    <TableColumn fx:id="tcBaixaRetorno" text="Retorno" style="-fx-alignment: CENTER;"/>
+                                    <TableColumn fx:id="tcBaixaOption" text="Opções"/>
+                                </columns>
+                            </TableView>
+                        </VBox>
+                        <VBox.margin>
+                            <Insets>
+                                <bottom>15</bottom>
+                            </Insets>
+                        </VBox.margin>
+                    </HBox>
+
+                    <HBox alignment="CENTER">
+                        <VBox alignment="CENTER_LEFT">
+                            <ImageView>
+                                <image>
+                                    <Image url="@../images/config-horarios-title.png"/>
+                                </image>
+                            </ImageView>
+                        </VBox>
+                        <VBox alignment="CENTER">
+                            <HBox.margin>
+                                <Insets>
+                                    <left>14</left>
+                                </Insets>
+                            </HBox.margin>
+                            <TimeSpinner fx:id="tfTime" prefHeight="30" prefWidth="235"/>
+                        </VBox>
+                        <VBox.margin>
+                            <Insets>
+                                <bottom>15</bottom>
+                            </Insets>
+                        </VBox.margin>
+                    </HBox>
+
+                    <HBox alignment="CENTER">
+                        <VBox alignment="CENTER_LEFT" prefWidth="65">
+                            <ImageView>
+                                <image>
+                                    <Image url="@../images/config-retornar-title.png"/>
+                                </image>
+                            </ImageView>
+                            <HBox.margin>
+                                <Insets>
+                                    <right>15</right>
+                                </Insets>
+                            </HBox.margin>
+                        </VBox>
+                        <VBox alignment="CENTER_LEFT">
+                            <Spinner min="0" max="100" prefWidth="183" prefHeight="30" fx:id="spRetornarDias" />
+                            <HBox.margin>
+                                <Insets>
+                                    <right>15</right>
+                                </Insets>
+                            </HBox.margin>
+                        </VBox>
+                        <VBox alignment="CENTER_LEFT" prefWidth="24">
+                            <ImageView>
+                                <image>
+                                    <Image url="@../images/config-dias-title.png"/>
+                                </image>
+                            </ImageView>
+                        </VBox>
+                        <VBox.margin>
+                            <Insets>
+                                <bottom>20</bottom>
+                            </Insets>
+                        </VBox.margin>
+                    </HBox>
+
+                </VBox>
+            </HBox>
+
+            <HBox alignment="CENTER">
+                <VBox alignment="CENTER_LEFT" prefWidth="310">
+                    <HBox alignment="CENTER_LEFT">
+                        <RadioButton fx:id="radioButton" text="Retorno de Pagamento" selected="true">
+                            <HBox.margin>
+                                <Insets right="30.0"/>
+                            </HBox.margin>
+                            <toggleGroup>
+                                <ToggleGroup fx:id="group"/>
+                            </toggleGroup>
+                        </RadioButton>
+                        <RadioButton fx:id="radioButton2" text="Baixa">
+                            <HBox.margin>
+                                <Insets left="30.0"/>
+                            </HBox.margin>
+                            <toggleGroup>
+                                <fx:reference source="group"/>
+                            </toggleGroup>
+                        </RadioButton>
+                    </HBox>
+                </VBox>
+            </HBox>
         </VBox>
     </right>
 
@@ -258,8 +352,8 @@
                     </VBox.margin>
 
                     <Button prefHeight="33.0" prefWidth="82.0"
-                            textAlignment="CENTER" fx:id="button01"
-                            onAction="#sendPaymentReturn">
+                            textAlignment="CENTER" fx:id="button01" onAction="#send"
+                            >
                         <graphic>
                             <ImageView>
                                 <Image url="@../images/button-title-enviar.png"/>

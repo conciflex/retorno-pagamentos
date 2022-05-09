@@ -48,7 +48,7 @@ public class LoginController {
         if (inetAddress != null) {
             IPConnection ipConnection = null;
 
-            System.out.println("IP: " + inetAddress.getHostAddress());
+            //System.out.println("IP: " + inetAddress.getHostAddress());
 
             try {
                 ipConnection = JDBCIPConnectionDAO.getInstance().search(inetAddress.getHostAddress());
@@ -96,7 +96,7 @@ public class LoginController {
                 e.printStackTrace();
             }
 
-            System.out.println("Cliente: " + client.getName());
+            //System.out.println("Cliente: " + client.getName());
 
             redirect(client.getId());
         }
@@ -121,7 +121,7 @@ public class LoginController {
                 fadeTransition.play();
 
                 Stage stage = (Stage) mainWindow.getScene().getWindow();
-                stage.setScene(new Scene(layoutWindow, 800, 450));
+                stage.setScene(new Scene(layoutWindow, 800, 550));
                 stage.setResizable(false);
             } catch (IOException e) {
                 e.printStackTrace();

@@ -6,8 +6,6 @@ import com.example.conciflex.model.classes.Query;
 import com.example.conciflex.model.dao.QueryDAO;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-
-import java.net.InetAddress;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

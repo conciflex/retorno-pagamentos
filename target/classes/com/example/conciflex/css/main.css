@@ -82,6 +82,11 @@
     -fx-background-radius: 5px;
 }
 
+#tableBaixaHour {
+    -fx-background-color: rgb(45, 82, 117, 0.20);
+    -fx-background-radius: 5px;
+}
+
 #buttonAddHour {
     -fx-border-radius: 5;
     -fx-background-color: rgb(45, 82, 117, 0.20);
@@ -154,4 +159,21 @@
     -fx-background-insets: 0;
     -fx-padding: 0;
     -fx-shape: null;
+}
+
+.radio-button .radio {
+    -fx-background-color: rgb(45, 82, 117, 0.20);
+}
+
+.radio-button {
+    -fx-text-fill: #2D5275;
+    -fx-font-size: 13;
+    -fx-font-family: IBMPlexSans-Regular;
+}
+
+#tituloRetornoTabela, #tituloRetornoBaixa {
+    -fx-text-fill: #2D5275;
+    -fx-font-size: 13;
+    -fx-font-family: IBMPlexSans-SemiBold;
+    -fx-font-weight: 500;
 }

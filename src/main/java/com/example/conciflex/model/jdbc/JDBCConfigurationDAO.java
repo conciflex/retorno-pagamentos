@@ -35,6 +35,7 @@ public class JDBCConfigurationDAO implements ConfigurationDAO {
         int returnDays = resultSet.getInt("RETORNO_DIAS");
         String name = resultSet.getString("NOME");
         int initDays = resultSet.getInt("DIAS_INICIO");
+        String baixa = resultSet.getString("BAIXA");
 
         configuration.setId(id);
         configuration.setTime(time);
@@ -42,6 +43,7 @@ public class JDBCConfigurationDAO implements ConfigurationDAO {
         configuration.setReturnDays(returnDays);
         configuration.setClientName(name);
         configuration.setInitDays(initDays);
+        configuration.setBaixa(baixa);
 
         return configuration;
     }
@@ -50,14 +52,15 @@ public class JDBCConfigurationDAO implements ConfigurationDAO {
     public void insert(Configuration configuration) throws Exception {
         Connection connection = ConnectionFactory.getConnectionConciflex();
 
-        String sql = "insert into retorno_pagamento_rp_info(HORARIO, COD_CLIENTE, RETORNO_DIAS, DIAS_INICIO) " +
-                "values(?, ?, ?, ?)";
+        String sql = "insert into retorno_pagamento_rp_info(HORARIO, COD_CLIENTE, RETORNO_DIAS, DIAS_INICIO, BAIXA) " +
+                "values(?, ?, ?, ?, ?)";
 
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
         preparedStatement.setString(1, configuration.getTime());
         preparedStatement.setInt(2, configuration.getClientId());
         preparedStatement.setInt(3, configuration.getReturnDays());
         preparedStatement.setInt(4, configuration.getInitDays());
+        preparedStatement.setString(5, configuration.getBaixa());
         preparedStatement.execute();
 
         preparedStatement.close();
@@ -65,7 +68,7 @@ public class JDBCConfigurationDAO implements ConfigurationDAO {
     }
 
     @Override
-    public ObservableList<Configuration> list() throws Exception {
+    public ObservableList<Configuration> listRetornoPagamento() throws Exception {
         ObservableList<Configuration> configurationObservableList = FXCollections.observableArrayList();
 
         Connection connection = ConnectionFactory.getConnectionConciflex();
@@ -75,12 +78,51 @@ public class JDBCConfigurationDAO implements ConfigurationDAO {
                 "retorno_pagamento_rp_info.COD_CLIENTE, " +
                 "retorno_pagamento_rp_info.RETORNO_DIAS, " +
                 "retorno_pagamento_rp_info.DIAS_INICIO, " +
-                "clientes.NOME from retorno_pagamento_rp_info " +
+                "clientes.NOME, " +
+                "retorno_pagamento_rp_info.BAIXA " +
+                "from retorno_pagamento_rp_info " +
                 "LEFT JOIN clientes ON clientes.CODIGO = retorno_pagamento_rp_info.COD_CLIENTE " +
-                "WHERE retorno_pagamento_rp_info.COD_CLIENTE = ?";
+                "WHERE retorno_pagamento_rp_info.COD_CLIENTE = ? " +
+                "AND BAIXA LIKE ?";
 
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
         preparedStatement.setInt(1, JDBCConfigurationDAO.getInstance().idFixedClient);
+        preparedStatement.setString(2, "N");
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        while (resultSet.next()){
+            Configuration configuration = loadConfiguration(resultSet);
+            configurationObservableList.add(configuration);
+        }
+
+        resultSet.close();
+        preparedStatement.close();
+        connection.close();
+
+        return configurationObservableList;
+    }
+
+    @Override
+    public ObservableList<Configuration> listBaixa() throws Exception {
+        ObservableList<Configuration> configurationObservableList = FXCollections.observableArrayList();
+
+        Connection connection = ConnectionFactory.getConnectionConciflex();
+
+        String sql = "select retorno_pagamento_rp_info.CODIGO, " +
+                "retorno_pagamento_rp_info.HORARIO, " +
+                "retorno_pagamento_rp_info.COD_CLIENTE, " +
+                "retorno_pagamento_rp_info.RETORNO_DIAS, " +
+                "retorno_pagamento_rp_info.DIAS_INICIO, " +
+                "clientes.NOME, " +
+                "retorno_pagamento_rp_info.BAIXA " +
+                "from retorno_pagamento_rp_info " +
+                "LEFT JOIN clientes ON clientes.CODIGO = retorno_pagamento_rp_info.COD_CLIENTE " +
+                "WHERE retorno_pagamento_rp_info.COD_CLIENTE = ? " +
+                "AND BAIXA LIKE ?";
+
+        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        preparedStatement.setInt(1, JDBCConfigurationDAO.getInstance().idFixedClient);
+        preparedStatement.setString(2, "S");
         ResultSet resultSet = preparedStatement.executeQuery();
 
         while (resultSet.next()){

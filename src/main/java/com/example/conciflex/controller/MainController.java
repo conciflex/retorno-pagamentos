@@ -1,7 +1,6 @@
 package com.example.conciflex.controller;
 
 import com.example.conciflex.MainApplication;
-import com.example.conciflex.model.ConnectionFactory;
 import com.example.conciflex.model.classes.*;
 import com.example.conciflex.model.jdbc.*;
 import com.example.conciflex.util.TimeSpinner;
@@ -15,8 +14,8 @@ import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
+import javafx.scene.text.Font;
 import javafx.util.Callback;
-
 import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -46,7 +45,10 @@ public class MainController {
     public DatePicker dpDataFinal;
 
     @FXML
-    public TableView tvConfiguration;
+    public TableView tvRetornoPagamento;
+
+    @FXML
+    public TableView tvBaixaConfiguration;
 
     @FXML
     public TableColumn tcHour;
@@ -58,18 +60,37 @@ public class MainController {
     public TableColumn tcOption;
 
     @FXML
+    public TableColumn tcBaixaHour;
+
+    @FXML
+    public TableColumn tcBaixaRetorno;
+
+    @FXML
+    public TableColumn tcBaixaOption;
+
+    @FXML
     public Spinner spInicioDias;
 
-    private ObservableList<Configuration> configurationObservableList = FXCollections.observableArrayList();
-    private ObservableList<Configuration> configurationCopyList = FXCollections.observableArrayList();
+    @FXML
+    public ToggleGroup group;
+
+    private ObservableList<Configuration> configurationRetornoPagamentosList = FXCollections.observableArrayList();
+    private ObservableList<Configuration> configurationBaixaPagamentosList = FXCollections.observableArrayList();
+
     private ObservableList<java.sql.Date> returnDaysObservableList = FXCollections.observableArrayList();
+    private ObservableList<java.sql.Date> returnDaysBaixaObservableList = FXCollections.observableArrayList();
 
     private static Client selectedClient;
+
     private static int paymentsReturnSize;
+
     private String successType = "Sucesso";
     private String errorType = "Erro";
 
     public void initialize() {
+        Font.loadFont(MainApplication.class.getResource("fonts/IBMPlexSans-Regular.ttf").toExternalForm(), 10);
+        Font.loadFont(MainApplication.class.getResource("fonts/IBMPlexSans-SemiBold.ttf").toExternalForm(), 10);
+
         mainWindow.getStylesheets().add(MainApplication.class.getResource("css/main.css").toExternalForm());
 
         try {
@@ -95,14 +116,19 @@ public class MainController {
         if(dbConnection.getIp() == null) {
             showMessage("Por favor, cadastre os parâmetros de conexão do cliente!");
         } else {
-            this.loadConfig();
-            this.getConfiguration();
+            this.loadRetornoPagamentoTable();
+            this.loadBaixaTable();
+            this.getPaymentReturnConfiguration();
             this.processData();
+            this.searchProcess();
         }
     }
 
     @FXML
     public void configSave() {
+        RadioButton selectedRadioButton = (RadioButton) group.getSelectedToggle();
+        String toogleGroupValue = selectedRadioButton.getText();
+
         Time time = null;
         String timeString = String.valueOf(tfTime.getValue());
         int days = (int) spRetornarDias.getValue();
@@ -146,6 +172,12 @@ public class MainController {
             configuration.setReturnDays(days);
             configuration.setInitDays(initDays);
 
+            if(toogleGroupValue.equals("Retorno de Pagamento")) {
+                configuration.setBaixa("N");
+            } else {
+                configuration.setBaixa("S");
+            }
+
             try {
                 JDBCConfigurationDAO.getInstance().insert(configuration);
                 showMessage("Configuração adicionada!");
@@ -154,15 +186,12 @@ public class MainController {
             }
         }
 
-        loadConfig();
+        loadRetornoPagamentoTable();
+        loadBaixaTable();
     }
 
-    @FXML
-    public void sendPaymentReturn() {
+    public Thread sendPaymentReturn(java.sql.Date startDate, java.sql.Date endDate) {
         Thread threadSendPaymentReturn = new Thread(() -> {
-            java.sql.Date startDate = java.sql.Date.valueOf(dpDataInicial.getValue());
-            java.sql.Date endDate = java.sql.Date.valueOf(dpDataFinal.getValue());
-
             String query = QueryController.getSearchQuery();
 
             String message_search = "Buscando os dados do cliente " + selectedClient.getName() + " do dia "+startDate+" ao dia "+endDate+"...";
@@ -190,7 +219,7 @@ public class MainController {
             }
 
             String message_insert = "Inserindo os dados do cliente " + selectedClient.getName() + " do dia "+startDate+" ao dia "+endDate+"...";
-;
+
             Platform.runLater(() -> showMessage(message_insert));
 
             writeMessageLog(message_insert, successType);
@@ -212,8 +241,167 @@ public class MainController {
             });
         });
 
-        threadSendPaymentReturn.setDaemon(true);
-        threadSendPaymentReturn.start();
+        return threadSendPaymentReturn;
+    }
+
+    public Thread sendBaixaReturn(java.sql.Date startDate, java.sql.Date endDate) {
+        Thread threadSendBaixa = new Thread(() -> {
+            ObservableList<String> idERPAtualizarList = FXCollections.observableArrayList();
+
+            Platform.runLater(() -> {
+                showMessage("Buscando dados para realizar baixa do dia "+startDate+" ao dia "+endDate+"...");
+            });
+
+            writeMessageLog("Buscando dados para realizar baixa do dia "+startDate+" ao dia "+endDate+"...", successType);
+
+            try {
+                idERPAtualizarList = JDBCBaixaDAO.getInstance().listarBaixasAtualizar(startDate, endDate);
+            } catch (Exception e) {
+                writeMessageLog("#7 " + e, errorType);
+            }
+
+            Platform.runLater(() -> {
+                showMessage("Atualizando baixa dos pagamentos");
+            });
+
+            writeMessageLog("Atualizando baixa dos pagamentos", successType);
+
+            for (String idERP:idERPAtualizarList) {
+                try {
+                    JDBCBaixaDAO.getInstance().atualizarBaixa(idERP, selectedClient);
+                } catch (Exception e) {
+                    writeMessageLog("#8 " + e, errorType);
+                }
+            }
+
+            Platform.runLater(() -> {
+                showMessage("Baixa realizada com sucesso!");
+            });
+
+            writeMessageLog("Baixa realizada com sucesso!", successType);
+        });
+
+        return threadSendBaixa;
+    }
+
+    @FXML
+    public void send() {
+        RadioButton selectedRadioButton = (RadioButton) group.getSelectedToggle();
+        String toogleGroupValue = selectedRadioButton.getText();
+
+        java.sql.Date startDate = java.sql.Date.valueOf(dpDataInicial.getValue());
+        java.sql.Date endDate = java.sql.Date.valueOf(dpDataFinal.getValue());
+
+        if(toogleGroupValue.equals("Retorno de Pagamento")) {
+            Thread threadSendPaymentReturn = sendPaymentReturn(startDate, endDate);
+
+            threadSendPaymentReturn.setDaemon(true);
+            threadSendPaymentReturn.start();
+        } else {
+            Thread threadSendBaixa = sendBaixaReturn(startDate, endDate);
+
+            threadSendBaixa.setDaemon(true);
+            threadSendBaixa.start();
+        }
+    }
+
+    public void searchProcess() {
+        Thread threadsearchProcess = new Thread(() -> {
+            while(true) {
+                ObservableList<Job> jobObservableList = FXCollections.observableArrayList();
+
+                try {
+                    jobObservableList = JDBCJobDAO.getInstance().listarJobs(selectedClient);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                if(jobObservableList.size() > 0) {
+                    for (Job job: jobObservableList) {
+                        String mensagem = "";
+
+                        switch (job.getTipoJob()) {
+                            case 1 -> {
+                                writeMessageLog("Processando retorno de pagamentos por envio pontual", successType);
+
+                                Platform.runLater(() -> {
+                                    showMessage("Processando retorno de pagamentos por envio pontual");
+                                });
+
+                                mensagem = "Retorno de pagamento processado!";
+                                Thread threadSendPaymentReturn = sendPaymentReturn(job.getDataInicial(), job.getDataFinal());
+
+                                threadSendPaymentReturn.setDaemon(true);
+                                threadSendPaymentReturn.start();
+
+                                try {
+                                    threadSendPaymentReturn.join();
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            case 2 -> {
+                                writeMessageLog("Processando baixa de pagamentos por envio pontual", successType);
+
+                                Platform.runLater(() -> {
+                                    showMessage("Processando baixa de pagamentos por envio pontual");
+                                });
+
+                                mensagem = "Baixa processada!";
+
+                                Thread threadSendBaixa = sendBaixaReturn(job.getDataInicial(), job.getDataFinal());
+
+                                threadSendBaixa.setDaemon(true);
+                                threadSendBaixa.start();
+
+                                try {
+                                    threadSendBaixa.join();
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+
+                        Notificacao notificacao = new Notificacao();
+
+                        java.sql.Date dataImportacao = new java.sql.Date(Calendar.getInstance().getTime().getTime());
+                        Time horaImportacao = java.sql.Time.valueOf(new SimpleDateFormat("HH:mm:ss").format(new java.util.Date()));
+
+                        notificacao.setIdCliente(selectedClient.getId());
+                        notificacao.setStatus(1);
+                        notificacao.setMensagem(mensagem);
+                        notificacao.setLido(0);
+                        notificacao.setData(dataImportacao);
+                        notificacao.setHora(horaImportacao);
+                        notificacao.setIdTipoNotificacao(9);
+                        notificacao.setIdUsuario(job.getIdUsuario());
+                        notificacao.setDataInicial(job.getDataInicial());
+                        notificacao.setDataFinal(job.getDataFinal());
+
+                        try {
+                            JDBCNotificacaoDAO.getInstance().notificar(notificacao);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        try {
+                            JDBCJobDAO.getInstance().atualizarJob(job.getId());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    writeMessageLog("#13 " + e, errorType);
+                }
+            }
+        });
+
+        threadsearchProcess.setDaemon(true);
+        threadsearchProcess.start();
     }
 
     public void generateQueryClient() {
@@ -222,7 +410,7 @@ public class MainController {
         try {
             clientObservableList = JDBCClientDAO.getInstance().listWithoutQuery();
         } catch (Exception e) {
-            e.printStackTrace();
+            writeMessageLog("#9 " + e, errorType);
         }
 
         for (Client client: clientObservableList) {
@@ -231,7 +419,7 @@ public class MainController {
             try {
                 JDBCQueryDAO.getInstance().create(client);
             } catch (Exception e) {
-                e.printStackTrace();
+                writeMessageLog("#10 " + e, errorType);
             }
         }
     }
@@ -239,9 +427,9 @@ public class MainController {
     public void processData() {
         Thread threadSendPaymentReturn = new Thread(() -> {
             while(true) {
-                this.getConfiguration();
+                this.getPaymentReturnConfiguration();
 
-                for (Configuration configuration: configurationObservableList) {
+                for (Configuration configuration: configurationRetornoPagamentosList) {
                     SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
                     String now = formatter.format(new Date());
                     Date processDateTime = null;
@@ -251,7 +439,7 @@ public class MainController {
                         processDateTime = formatter.parse(configuration.getTime());
                         nowDateTime = formatter.parse(now);
                     } catch (ParseException e) {
-                        writeMessageLog("#7 " + e, errorType);
+                        writeMessageLog("#11 " + e, errorType);
                     }
 
                     paymentsReturnSize = 0;
@@ -281,13 +469,13 @@ public class MainController {
                         try {
                             JDBCPaymentDAO.getInstance().clearTable();
                         } catch (Exception e) {
-                            writeMessageLog("#8 " + e, errorType);
+                            writeMessageLog("#12 " + e, errorType);
                         }
 
                         try {
                             Thread.sleep(3000);
                         } catch (InterruptedException e) {
-                            writeMessageLog("#9 " + e, errorType);
+                            writeMessageLog("#13 " + e, errorType);
                         }
 
                         for (java.sql.Date returnDay: returnDaysObservableList) {
@@ -307,13 +495,13 @@ public class MainController {
                             try {
                                 paymentObservableList = JDBCPaymentDAO.getInstance().list(selectedClient, returnDay, returnDay, query);
                             } catch (Exception e) {
-                                writeMessageLog("#10 " + e, errorType);
+                                writeMessageLog("#14 " + e, errorType);
                             }
 
                             try {
                                 Thread.sleep(3000);
                             } catch (InterruptedException e) {
-                                writeMessageLog("#11 " + e, errorType);
+                                writeMessageLog("#15 " + e, errorType);
                             }
 
                             Platform.runLater(() -> {
@@ -326,7 +514,7 @@ public class MainController {
                                 try {
                                     JDBCPaymentDAO.getInstance().create(payment);
                                 } catch (Exception e) {
-                                    writeMessageLog("#12 " + e, errorType);
+                                    writeMessageLog("#16 " + e, errorType);
                                 }
                             }
 
@@ -335,7 +523,7 @@ public class MainController {
                             try {
                                 Thread.sleep(3000);
                             } catch (InterruptedException e) {
-                                writeMessageLog("#13 " + e, errorType);
+                                writeMessageLog("#17 " + e, errorType);
                             }
 
                             Platform.runLater(() -> {
@@ -355,28 +543,130 @@ public class MainController {
             }
         });
 
+        Thread threadSendPaymentBaixa = new Thread(() -> {
+            while(true) {
+                this.getPaymentBaixaConfiguration();
+
+                for (Configuration configuration: configurationBaixaPagamentosList) {
+                    SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
+                    String now = formatter.format(new Date());
+                    Date processDateTime = null;
+                    Date nowDateTime = null;
+
+                    try {
+                        processDateTime = formatter.parse(configuration.getTime());
+                        nowDateTime = formatter.parse(now);
+                    } catch (ParseException e) {
+                        writeMessageLog("#18 " + e, errorType);
+                    }
+
+                    if (processDateTime != null && processDateTime.equals(nowDateTime)) {
+                        returnDaysBaixaObservableList.clear();
+
+                        int initDays = configuration.getInitDays();
+
+                        java.sql.Date todayDateSQL = java.sql.Date.valueOf(LocalDate.now().minusDays(initDays));
+
+                        returnDaysBaixaObservableList.add(todayDateSQL);
+
+                        if(configuration.getReturnDays() != 0) {
+                            for (int i = 1; i <= configuration.getReturnDays(); i++) {
+                                java.sql.Date date = java.sql.Date.valueOf(LocalDate.now().minusDays(initDays).minusDays(i));
+                                returnDaysBaixaObservableList.add(date);
+                            }
+                        }
+
+                        for (java.sql.Date returnDay: returnDaysBaixaObservableList) {
+                            SimpleDateFormat formatter2 = new SimpleDateFormat("dd/MM/yyyy");
+                            String dayString = formatter2.format(returnDay);
+
+                            ObservableList<String> idERPAtualizarList = FXCollections.observableArrayList();
+
+                            Platform.runLater(() -> {
+                                showMessage("Buscando dados para realizar baixa do dia "+dayString+"...");
+                            });
+
+                            writeMessageLog("Buscando dados para realizar baixa do dia "+dayString+"...", successType);
+
+                            try {
+                                idERPAtualizarList = JDBCBaixaDAO.getInstance().listarBaixasAtualizar(returnDay, returnDay);
+                            } catch (Exception e) {
+                                writeMessageLog("#7 " + e, errorType);
+                            }
+
+                            Platform.runLater(() -> {
+                                showMessage("Atualizando baixa dos pagamentos do dia "+dayString+"");
+                            });
+
+                            writeMessageLog("Atualizando baixa dos pagamentos do dia "+dayString+"", successType);
+
+                            for (String idERP:idERPAtualizarList) {
+                                try {
+                                    JDBCBaixaDAO.getInstance().atualizarBaixa(idERP, selectedClient);
+                                } catch (Exception e) {
+                                    writeMessageLog("#8 " + e, errorType);
+                                }
+                            }
+
+                            Platform.runLater(() -> {
+                                showMessage("Baixa do dia "+dayString+" realizada com sucesso!");
+                            });
+
+                            writeMessageLog("Baixa do dia "+dayString+" realizada com sucesso!", successType);
+                        }
+                    }
+                }
+
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
         threadSendPaymentReturn.setDaemon(true);
         threadSendPaymentReturn.start();
+
+        threadSendPaymentBaixa.setDaemon(true);
+        threadSendPaymentBaixa.start();
     }
 
-    public void loadConfig() {
-        ObservableList<Configuration> configList = FXCollections.observableArrayList();
+    public void loadRetornoPagamentoTable() {
+        ObservableList<Configuration> configRetornoPagamentoList = FXCollections.observableArrayList();
 
         tcHour.setCellValueFactory(new PropertyValueFactory<>("time"));
         tcRetorno.setCellValueFactory(new PropertyValueFactory<>("returnDays"));
 
         try {
-            configList = JDBCConfigurationDAO.getInstance().list();
+            configRetornoPagamentoList = JDBCConfigurationDAO.getInstance().listRetornoPagamento();
         } catch (Exception e) {
-            e.printStackTrace();
+            writeMessageLog("#19 " + e, errorType);
         }
 
-        addButtonTableConfiguration();
+        addButtonTableRetornoPagamento();
 
-        tvConfiguration.setItems(configList);
+        tvRetornoPagamento.setItems(configRetornoPagamentoList);
     }
 
-    public void addButtonTableConfiguration() {
+    public void loadBaixaTable() {
+        ObservableList<Configuration> configBaixaList = FXCollections.observableArrayList();
+
+        tcBaixaHour.setCellValueFactory(new PropertyValueFactory<>("time"));
+        tcBaixaRetorno.setCellValueFactory(new PropertyValueFactory<>("returnDays"));
+
+        try {
+            configBaixaList = JDBCConfigurationDAO.getInstance().listBaixa();
+        } catch (Exception e) {
+            writeMessageLog("#20 " + e, errorType);
+        }
+
+        addButtonTableBaixa();
+
+        tvBaixaConfiguration.setItems(configBaixaList);
+    }
+
+    public void addButtonTableRetornoPagamento() {
         Callback<TableColumn<Configuration, Void>, TableCell<Configuration, Void>> cellFactory = new Callback<>() {
             @Override
             public TableCell<Configuration, Void> call(final TableColumn<Configuration, Void> param) {
@@ -415,24 +705,74 @@ public class MainController {
         tcOption.setCellFactory(cellFactory);
     }
 
+    public void addButtonTableBaixa() {
+        Callback<TableColumn<Configuration, Void>, TableCell<Configuration, Void>> cellFactory = new Callback<>() {
+            @Override
+            public TableCell<Configuration, Void> call(final TableColumn<Configuration, Void> param) {
+                final TableCell<Configuration, Void> cell = new TableCell<>() {
+                    private Button btn = new Button("Remover");
+                    private final HBox pane = new HBox(btn);
+
+                    {
+                        pane.alignmentProperty().set(Pos.CENTER);
+                        pane.spacingProperty().setValue(5);
+                        btn.setStyle("-fx-background-color: transparent");
+
+                        btn.setOnAction((ActionEvent event) -> {
+                            Configuration configuration = getTableView().getItems().get(getIndex());
+                            if(configuration != null) {
+                                remove(configuration);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void updateItem(Void item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty) {
+                            setGraphic(null);
+                        } else {
+                            setGraphic(pane);
+                        }
+                    }
+                };
+
+                return cell;
+            }
+        };
+
+        tcBaixaOption.setCellFactory(cellFactory);
+    }
+
     public void remove(Configuration configuration) {
         try {
             JDBCConfigurationDAO.getInstance().delete(configuration);
             showMessage("Configuração deletada!");
         } catch (Exception e) {
-            writeMessageLog("#15 " + e, errorType);
+            writeMessageLog("#21 " + e, errorType);
         }
 
-        loadConfig();
+        loadRetornoPagamentoTable();
+        loadBaixaTable();
     }
 
-    public void getConfiguration() {
-        configurationObservableList.clear();
+    public void getPaymentReturnConfiguration() {
+        configurationRetornoPagamentosList.clear();
 
         try {
-            configurationObservableList = JDBCConfigurationDAO.getInstance().list();
+            configurationRetornoPagamentosList = JDBCConfigurationDAO.getInstance().listRetornoPagamento();
         } catch (Exception e) {
-            writeMessageLog("#16 " + e, errorType);
+            writeMessageLog("#22 " + e, errorType);
+        }
+    }
+
+    public void getPaymentBaixaConfiguration() {
+        configurationBaixaPagamentosList.clear();
+
+        try {
+            configurationBaixaPagamentosList = JDBCConfigurationDAO.getInstance().listBaixa();
+        } catch (Exception e) {
+            writeMessageLog("#23 " + e, errorType);
         }
     }
 
@@ -452,7 +792,7 @@ public class MainController {
         try {
             JDBCLogDAO.getInstance().create(log);
         } catch (Exception e) {
-            writeMessageLog("#17 " + e, errorType);
+            e.printStackTrace();
         }
     }
 }

@@ -7,6 +7,15 @@ public class Configuration {
     public String clientName;
     public int returnDays;
     public int initDays;
+    public String baixa;
+
+    public String getBaixa() {
+        return baixa;
+    }
+
+    public void setBaixa(String baixa) {
+        this.baixa = baixa;
+    }
 
     public int getId() {
         return id;
